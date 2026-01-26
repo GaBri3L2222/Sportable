@@ -662,32 +662,10 @@
                             "description": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">arrive à détécter quelqu'un</p></body></html>",
                             "name": "vision_state",
                             "type": "BOOL"
-                        }
-                    ],
-                    "services": [
+                        },
                         {
-                            "arguments": [
-                                {
-                                    "name": "current_exercice",
-                                    "type": "STRING"
-                                }
-                            ],
-                            "name": "start_detection",
-                            "replies": [
-                                {
-                                    "arguments": [
-                                        {
-                                            "name": "rep_validated",
-                                            "type": "BOOL"
-                                        },
-                                        {
-                                            "name": "new_reply_argument",
-                                            "type": "STRING"
-                                        }
-                                    ],
-                                    "name": "reponse"
-                                }
-                            ]
+                            "name": "feedback",
+                            "type": "STRING"
                         }
                     ]
                 },
@@ -783,9 +761,9 @@
                     "simulationTime": 5000,
                     "uuid": "1f311cc3-0bbb-41dd-a602-4f6779833e07",
                     "width": 250,
-                    "x": 423.17464199333324,
-                    "y": 558.4891171323264,
-                    "z": 0.7000000000000004
+                    "x": 487.32823081730476,
+                    "y": 708.1808243882596,
+                    "z": 0.9700000000000006
                 },
                 {
                     "agent": {
@@ -796,22 +774,32 @@
                     "simulationTime": 5000,
                     "uuid": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
                     "width": 349,
-                    "x": -501.8779783390312,
-                    "y": 423.3061453240696,
-                    "z": 0.5800000000000003
+                    "x": -496.1754371102336,
+                    "y": 567.2953113512052,
+                    "z": 0.9800000000000006
                 },
                 {
                     "agent": {
+                        "instances": [
+                            {
+                                "commandLine": "C:\\Users\\xdlol\\miniconda3\\envs\\ihm\\python.exe main.py --verbose --port 5670 --device Wi-Fi --name Vision",
+                                "hostname": "PCLBG2",
+                                "ip": "192.168.1.157",
+                                "isAttachedToCircle": false,
+                                "mac": "C4:75:AB:C8:DD:04",
+                                "uuid": "8165d478-8b0c-48cd-a86a-12b69c26923c"
+                            }
+                        ]
                     },
                     "class": "2d89810b-debc-4d31-af0a-c44e601cb289",
-                    "height": 144,
+                    "height": 166,
                     "name": "Vision",
                     "simulationTime": 5000,
                     "uuid": "d7ec22c9-299b-498b-b799-add591b515bd",
                     "width": 250,
-                    "x": -245.29734857999858,
-                    "y": -62.445051435338655,
-                    "z": 0.7200000000000004
+                    "x": -97.03127663126475,
+                    "y": -88.10648696492717,
+                    "z": 0.8700000000000006
                 },
                 {
                     "agent": {
@@ -822,9 +810,102 @@
                     "simulationTime": 5000,
                     "uuid": "78b3b649-c7d5-4a7a-8100-942405c71ba3",
                     "width": 250,
-                    "x": 381.3618297242185,
-                    "y": 163.95864964856722,
-                    "z": 0.7300000000000004
+                    "x": 475.45375999937664,
+                    "y": 315.0759922116998,
+                    "z": 0.9900000000000007
+                },
+                {
+                    "data": {
+                        "entries": [
+                            "squats"
+                        ],
+                        "value_type": "STRING"
+                    },
+                    "height": 88,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.writer",
+                    "uuid": "518ad1d4-1780-4539-9dcd-be66bf6e87d5",
+                    "width": 250,
+                    "x": -653.6673265353878,
+                    "y": -31.6634393983756,
+                    "z": 0.9500000000000006
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "135ac25b-f88d-49a6-9f16-b50039be6cc6",
+                    "width": 250,
+                    "x": 424.2703781206426,
+                    "y": -259.3240386058711,
+                    "z": 0.9100000000000006
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "fbab5b04-f0fc-481c-80ba-8af4fb98ab10",
+                    "width": 250,
+                    "x": 426.76523990824194,
+                    "y": -160.24238475551545,
+                    "z": 0.9200000000000006
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "7793a0ec-e459-4e5f-8ddc-95eecd6c4d76",
+                    "width": 250,
+                    "x": 427.12164873504116,
+                    "y": -52.25051023516352,
+                    "z": 0.9300000000000006
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "65c03478-5df7-4c69-9b49-05642bf15ad1",
+                    "width": 250,
+                    "x": 428.19087521544066,
+                    "y": 44.336281827593496,
+                    "z": 0.9400000000000006
                 }
             ],
             "links": {
@@ -918,6 +999,68 @@
                         "fromInput": "chatMessage",
                         "to": "Moteur",
                         "toOutput": "current_exercice"
+                    }
+                ],
+                "others": [
+                    {
+                        "destination": "d7ec22c9-299b-498b-b799-add591b515bd",
+                        "destinationIO": {
+                            "name": "current_exercice",
+                            "type": "INPUT"
+                        },
+                        "source": "518ad1d4-1780-4539-9dcd-be66bf6e87d5",
+                        "sourceIO": {
+                            "name": "value",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "135ac25b-f88d-49a6-9f16-b50039be6cc6",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "d7ec22c9-299b-498b-b799-add591b515bd",
+                        "sourceIO": {
+                            "name": "rep_validated",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "fbab5b04-f0fc-481c-80ba-8af4fb98ab10",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "d7ec22c9-299b-498b-b799-add591b515bd",
+                        "sourceIO": {
+                            "name": "squelette",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "7793a0ec-e459-4e5f-8ddc-95eecd6c4d76",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "d7ec22c9-299b-498b-b799-add591b515bd",
+                        "sourceIO": {
+                            "name": "vision_state",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "65c03478-5df7-4c69-9b49-05642bf15ad1",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "d7ec22c9-299b-498b-b799-add591b515bd",
+                        "sourceIO": {
+                            "name": "feedback",
+                            "type": "OUTPUT"
+                        }
                     }
                 ]
             },
