@@ -788,6 +788,14 @@
                                 "isAttachedToCircle": false,
                                 "mac": "C4:75:AB:C8:DD:04",
                                 "uuid": "8165d478-8b0c-48cd-a86a-12b69c26923c"
+                            },
+                            {
+                                "commandLine": "C:\\Users\\xdlol\\miniconda3\\envs\\sportable\\python.exe main.py --verbose --port 5670 --device Wi-Fi --name Vision",
+                                "hostname": "PCLBG2",
+                                "ip": "192.168.1.157",
+                                "isAttachedToCircle": false,
+                                "mac": "C4:75:AB:C8:DD:04",
+                                "uuid": "3fa5c7c9-3d7d-479a-b422-6008d42b5df4"
                             }
                         ]
                     },
@@ -829,7 +837,7 @@
                     "width": 250,
                     "x": -653.6673265353878,
                     "y": -31.6634393983756,
-                    "z": 0.9500000000000006
+                    "z": 1.0000000000000007
                 },
                 {
                     "data": {
