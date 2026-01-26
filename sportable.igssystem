@@ -1,0 +1,927 @@
+{
+    "extensions": {
+        "eventsTimeline": {
+            "events": [
+            ],
+            "patterns": [
+            ],
+            "timelines": [
+                {
+                    "eventInstances": [
+                    ],
+                    "name": "Timeline_1",
+                    "order": 0,
+                    "patternInstances": [
+                    ]
+                }
+            ]
+        }
+    },
+    "library": {
+        "classes": [
+            {
+                "className": "Whiteboard",
+                "color": 0,
+                "definition": {
+                    "inputs": [
+                        {
+                            "name": "title",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "backgroundColor",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "labelsVisible",
+                            "type": "BOOL"
+                        },
+                        {
+                            "name": "chatMessage",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "clear",
+                            "type": "IMPULSION"
+                        },
+                        {
+                            "name": "ui_command",
+                            "type": "STRING"
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "windowWidth",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "name": "windowHeight",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "name": "whiteboardWidth",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "name": "whiteboardHeight",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "name": "lastChatMessage",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "lastAction",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "ui_error",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "click",
+                            "type": "STRING"
+                        }
+                    ],
+                    "services": [
+                        {
+                            "arguments": [
+                                {
+                                    "name": "title",
+                                    "type": "STRING"
+                                }
+                            ],
+                            "name": "setTitle"
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "color",
+                                    "type": "STRING"
+                                }
+                            ],
+                            "name": "setBackgroundColor"
+                        },
+                        {
+                            "name": "getWindowSize",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "width",
+                                            "type": "INTEGER"
+                                        },
+                                        {
+                                            "name": "height",
+                                            "type": "INTEGER"
+                                        }
+                                    ],
+                                    "name": "getWindowSizeResult"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "getWhiteboardSize",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "width",
+                                            "type": "INTEGER"
+                                        },
+                                        {
+                                            "name": "height",
+                                            "type": "INTEGER"
+                                        }
+                                    ],
+                                    "name": "getWhiteboardSizeResult"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "message",
+                                    "type": "STRING"
+                                }
+                            ],
+                            "name": "chat"
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "name",
+                                    "type": "STRING"
+                                },
+                                {
+                                    "name": "message",
+                                    "type": "STRING"
+                                }
+                            ],
+                            "name": "chatAs"
+                        },
+                        {
+                            "name": "snapshot",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "base64Png",
+                                            "type": "DATA"
+                                        }
+                                    ],
+                                    "name": "snapshotResult"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "clear"
+                        },
+                        {
+                            "name": "showLabels"
+                        },
+                        {
+                            "name": "hideLabels"
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "type",
+                                    "type": "STRING"
+                                },
+                                {
+                                    "name": "x",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "y",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "width",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "height",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "fill",
+                                    "type": "STRING"
+                                },
+                                {
+                                    "name": "stroke",
+                                    "type": "STRING"
+                                },
+                                {
+                                    "name": "strokeWidth",
+                                    "type": "DOUBLE"
+                                }
+                            ],
+                            "name": "addShape",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "elementId",
+                                            "type": "INTEGER"
+                                        }
+                                    ],
+                                    "name": "elementCreated"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "text",
+                                    "type": "STRING"
+                                },
+                                {
+                                    "name": "x",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "y",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "color",
+                                    "type": "STRING"
+                                }
+                            ],
+                            "name": "addText",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "elementId",
+                                            "type": "INTEGER"
+                                        }
+                                    ],
+                                    "name": "elementCreated"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "base64",
+                                    "type": "DATA"
+                                },
+                                {
+                                    "name": "x",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "y",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "width",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "height",
+                                    "type": "DOUBLE"
+                                }
+                            ],
+                            "name": "addImage",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "elementId",
+                                            "type": "INTEGER"
+                                        }
+                                    ],
+                                    "name": "elementCreated"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "url",
+                                    "type": "STRING"
+                                },
+                                {
+                                    "name": "x",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "y",
+                                    "type": "DOUBLE"
+                                }
+                            ],
+                            "name": "addImageFromUrl",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "elementId",
+                                            "type": "INTEGER"
+                                        }
+                                    ],
+                                    "name": "elementCreated"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "elementId",
+                                    "type": "INTEGER"
+                                }
+                            ],
+                            "name": "remove",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "succeeded",
+                                            "type": "BOOL"
+                                        }
+                                    ],
+                                    "name": "actionResult"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "elementId",
+                                    "type": "INTEGER"
+                                },
+                                {
+                                    "name": "dx",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "dy",
+                                    "type": "DOUBLE"
+                                }
+                            ],
+                            "name": "translate",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "succeeded",
+                                            "type": "BOOL"
+                                        }
+                                    ],
+                                    "name": "actionResult"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "elementId",
+                                    "type": "INTEGER"
+                                },
+                                {
+                                    "name": "x",
+                                    "type": "DOUBLE"
+                                },
+                                {
+                                    "name": "y",
+                                    "type": "DOUBLE"
+                                }
+                            ],
+                            "name": "moveTo",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "succeeded",
+                                            "type": "BOOL"
+                                        }
+                                    ],
+                                    "name": "actionResult"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "elementId",
+                                    "type": "INTEGER"
+                                },
+                                {
+                                    "name": "property",
+                                    "type": "STRING"
+                                },
+                                {
+                                    "name": "value",
+                                    "type": "STRING"
+                                }
+                            ],
+                            "name": "setStringProperty",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "succeeded",
+                                            "type": "BOOL"
+                                        }
+                                    ],
+                                    "name": "actionResult"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "elementId",
+                                    "type": "INTEGER"
+                                },
+                                {
+                                    "name": "property",
+                                    "type": "STRING"
+                                },
+                                {
+                                    "name": "value",
+                                    "type": "DOUBLE"
+                                }
+                            ],
+                            "name": "setDoubleProperty",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "succeeded",
+                                            "type": "BOOL"
+                                        }
+                                    ],
+                                    "name": "actionResult"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "getElementIds",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "jsonArray",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "elementIds"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "getElements",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "jsonArray",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "elements"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "description": "",
+                "icon": -1,
+                "package": "",
+                "plugin": "ingescape_class",
+                "uuid": "e6f0a35e-354f-4837-97c4-413f5a516e25",
+                "version": ""
+            },
+            {
+                "className": "Moteur",
+                "color": 0,
+                "definition": {
+                    "inputs": [
+                        {
+                            "name": "rep_validated",
+                            "type": "IMPULSION"
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "current_exercice",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "rep_remaining",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "name": "set_remaining",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "description": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">en secondes</p></body></html>",
+                            "name": "rest_time_remaining",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "name": "session_state",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "workout_summary",
+                            "type": "STRING"
+                        }
+                    ],
+                    "services": [
+                        {
+                            "name": "stopWorkout",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "displayJSON",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "updateVue"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "startWorkout",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "displayJSON",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "updateVue"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "recuperationID",
+                                    "type": "INTEGER"
+                                }
+                            ],
+                            "name": "removeRecuperation",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "displayJSON",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "updateVue"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "addRecuperation",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "displayJSON",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "updateVue"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "addExercice",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "displayJSON",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "updateVue"
+                                }
+                            ]
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "exerciceID",
+                                    "type": "INTEGER"
+                                }
+                            ],
+                            "name": "removeExercice",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "displayJSON",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "updateVue"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "description": "",
+                "icon": -1,
+                "package": "",
+                "plugin": "ingescape_class",
+                "uuid": "9ccdfccb-d2df-47e7-96bf-27bf645c490c",
+                "version": ""
+            },
+            {
+                "className": "Vision",
+                "color": 0,
+                "definition": {
+                    "inputs": [
+                        {
+                            "name": "current_exercice",
+                            "type": "STRING"
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "rep_validated",
+                            "type": "IMPULSION"
+                        },
+                        {
+                            "name": "squelette",
+                            "type": "STRING"
+                        },
+                        {
+                            "description": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">arrive à détécter quelqu'un</p></body></html>",
+                            "name": "vision_state",
+                            "type": "BOOL"
+                        }
+                    ],
+                    "services": [
+                        {
+                            "arguments": [
+                                {
+                                    "name": "current_exercice",
+                                    "type": "STRING"
+                                }
+                            ],
+                            "name": "start_detection",
+                            "replies": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "name": "rep_validated",
+                                            "type": "BOOL"
+                                        },
+                                        {
+                                            "name": "new_reply_argument",
+                                            "type": "STRING"
+                                        }
+                                    ],
+                                    "name": "reponse"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "description": "",
+                "icon": -1,
+                "package": "",
+                "plugin": "ingescape_class",
+                "uuid": "2d89810b-debc-4d31-af0a-c44e601cb289",
+                "version": ""
+            },
+            {
+                "className": "Interface graphique",
+                "color": 0,
+                "definition": {
+                    "inputs": [
+                        {
+                            "name": "squelette",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "vision_state",
+                            "type": "BOOL"
+                        },
+                        {
+                            "name": "current_exercice",
+                            "type": "STRING"
+                        },
+                        {
+                            "name": "rep_remaining",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "name": "set_remaining",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "name": "rest_time_remaining",
+                            "type": "INTEGER"
+                        },
+                        {
+                            "description": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">programation, execution de la seance</p></body></html>",
+                            "name": "session_state",
+                            "type": "STRING"
+                        }
+                    ],
+                    "services": [
+                        {
+                            "arguments": [
+                                {
+                                    "name": "displayJSON",
+                                    "type": "STRING"
+                                }
+                            ],
+                            "name": "setTotalDisplay"
+                        }
+                    ]
+                },
+                "description": "",
+                "icon": -1,
+                "package": "",
+                "plugin": "ingescape_class",
+                "uuid": "d94ef2f6-b458-47e7-9a17-b82d17109878",
+                "version": ""
+            }
+        ]
+    },
+    "systemViews": [
+        {
+            "children": [
+                {
+                    "agent": {
+                        "instances": [
+                            {
+                                "commandLine": "\"/home/bschloge/Mes Documents/Travail/Semestre_9/Porjet IHM/whiteboard-1.0.2_0-amd64/whiteboard-1.0.2_0-amd64/opt/Whiteboard/bin/Whiteboard\"",
+                                "hostname": "actinium.enseeiht.fr",
+                                "ip": "147.127.133.81",
+                                "isAttachedToCircle": false,
+                                "uuid": "eb69a28f-aade-4b29-8f69-0e50657644fd"
+                            },
+                            {
+                                "commandLine": "\"/home/bschloge/Mes Documents/Travail/Semestre_9/Porjet IHM/whiteboard.linux/whiteboard-1.0.1_0-amd64/opt/Whiteboard/bin/Whiteboard\"",
+                                "hostname": "iode.enseeiht.fr",
+                                "ip": "147.127.133.79",
+                                "isAttachedToCircle": false,
+                                "mac": "D8:9E:F3:41:26:68",
+                                "uuid": "e5bb6a08-c795-4981-95e9-f2101796910e"
+                            }
+                        ]
+                    },
+                    "class": "e6f0a35e-354f-4837-97c4-413f5a516e25",
+                    "height": 254,
+                    "name": "Whiteboard",
+                    "simulationTime": 5000,
+                    "uuid": "1f311cc3-0bbb-41dd-a602-4f6779833e07",
+                    "width": 250,
+                    "x": 423.17464199333324,
+                    "y": 558.4891171323264,
+                    "z": 0.7000000000000004
+                },
+                {
+                    "agent": {
+                    },
+                    "class": "9ccdfccb-d2df-47e7-96bf-27bf645c490c",
+                    "height": 282.66212652102314,
+                    "name": "Moteur",
+                    "simulationTime": 5000,
+                    "uuid": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                    "width": 349,
+                    "x": -501.8779783390312,
+                    "y": 423.3061453240696,
+                    "z": 0.5800000000000003
+                },
+                {
+                    "agent": {
+                    },
+                    "class": "2d89810b-debc-4d31-af0a-c44e601cb289",
+                    "height": 144,
+                    "name": "Vision",
+                    "simulationTime": 5000,
+                    "uuid": "d7ec22c9-299b-498b-b799-add591b515bd",
+                    "width": 250,
+                    "x": -245.29734857999858,
+                    "y": -62.445051435338655,
+                    "z": 0.7200000000000004
+                },
+                {
+                    "agent": {
+                    },
+                    "class": "d94ef2f6-b458-47e7-9a17-b82d17109878",
+                    "height": 254,
+                    "name": "Interface graphique",
+                    "simulationTime": 5000,
+                    "uuid": "78b3b649-c7d5-4a7a-8100-942405c71ba3",
+                    "width": 250,
+                    "x": 381.3618297242185,
+                    "y": 163.95864964856722,
+                    "z": 0.7300000000000004
+                }
+            ],
+            "links": {
+                "mappings": [
+                    {
+                        "from": "Moteur",
+                        "fromInput": "rep_validated",
+                        "to": "Vision",
+                        "toOutput": "rep_validated"
+                    },
+                    {
+                        "from": "Interface graphique",
+                        "fromInput": "squelette",
+                        "to": "Vision",
+                        "toOutput": "squelette"
+                    },
+                    {
+                        "from": "Interface graphique",
+                        "fromInput": "vision_state",
+                        "to": "Vision",
+                        "toOutput": "vision_state"
+                    },
+                    {
+                        "from": "Vision",
+                        "fromInput": "current_exercice",
+                        "to": "Moteur",
+                        "toOutput": "current_exercice"
+                    },
+                    {
+                        "from": "Interface graphique",
+                        "fromInput": "set_remaining",
+                        "to": "Moteur",
+                        "toOutput": "set_remaining"
+                    },
+                    {
+                        "from": "Interface graphique",
+                        "fromInput": "rep_remaining",
+                        "to": "Moteur",
+                        "toOutput": "rep_remaining"
+                    },
+                    {
+                        "from": "Interface graphique",
+                        "fromInput": "rest_time_remaining",
+                        "to": "Moteur",
+                        "toOutput": "rest_time_remaining"
+                    },
+                    {
+                        "from": "Interface graphique",
+                        "fromInput": "session_state",
+                        "to": "Moteur",
+                        "toOutput": "session_state"
+                    },
+                    {
+                        "from": "Interface graphique",
+                        "fromInput": "current_exercice",
+                        "to": "Moteur",
+                        "toOutput": "current_exercice"
+                    },
+                    {
+                        "from": "Whiteboard",
+                        "fromInput": "chatMessage",
+                        "to": "Moteur",
+                        "toOutput": "workout_summary"
+                    },
+                    {
+                        "from": "Whiteboard",
+                        "fromInput": "chatMessage",
+                        "to": "Moteur",
+                        "toOutput": "session_state"
+                    },
+                    {
+                        "from": "Whiteboard",
+                        "fromInput": "chatMessage",
+                        "to": "Moteur",
+                        "toOutput": "rest_time_remaining"
+                    },
+                    {
+                        "from": "Whiteboard",
+                        "fromInput": "chatMessage",
+                        "to": "Moteur",
+                        "toOutput": "set_remaining"
+                    },
+                    {
+                        "from": "Whiteboard",
+                        "fromInput": "chatMessage",
+                        "to": "Moteur",
+                        "toOutput": "rep_remaining"
+                    },
+                    {
+                        "from": "Whiteboard",
+                        "fromInput": "chatMessage",
+                        "to": "Moteur",
+                        "toOutput": "current_exercice"
+                    }
+                ]
+            },
+            "name": "Main view"
+        }
+    ]
+}
