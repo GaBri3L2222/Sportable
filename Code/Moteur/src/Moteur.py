@@ -10,18 +10,16 @@
 #
 import ingescape as igs
 import FonctionsJSON as funcJSON
-
-## Variables globales ##
-Id_exo_en_cours = -1 # un exercice ou une pause
-Exercice_en_cours = {"séries_restantes": 0, "répétitions_restantes": 0}
-Pause_en_cours = {"temps_restant": 0}
-
-ID_exo_global = [0]
-ID_pause_global = [0]
+import ElemsWorkout as EW
+import json
 
 ## Etat du moteur ##
 MoteurCOMPOSING = "composing"
 MoteurRUNNING = "running"
+
+## Type d'element ##
+EXERCICE = "exercice"
+PAUSE = "pause"
 
 class Singleton(type):
     _instances = {}
@@ -29,8 +27,166 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
+    
+class StructWorkout():
+    
+    def __init__(self):
+        self.__elements = []
+        self.__ID_global = 0
+        
+    def __FindID__(self, id: int, type: str):
+        for element in self.__elements:
+            if element.GetID() == id and element.GetType() == type:
+                return element
+        return None
+    
+    def GetNewID(self):
+        self.__ID_global += 1
+        return self.__ID_global
+            
+    def AddExercice(self):
+        id = self.GetNewID()
+        if self.__FindID__(id, EXERCICE) is not None:
+            print(f"Erreur de AddExercice : l'exercice d'ID {id} existe déjà.")
+            return
+        self.__elements.append(EW.Exercice(id))
+        print(f"Ajout de l'exercice d'ID {id}.")
+        
+    def RemoveExercice(self, id: int):
+        element = self.__FindID__(id, EXERCICE)
+        if element != None:
+            del self.__elements[self.__elements.index(element)]
+            print(f"Suppression de l'exercice d'ID {id}.")
+        else:
+            print(f"Erreur de RemoveExercice : l'exercice d'ID {id} n'existe pas.")
+        
+    def AddPause(self):
+        id = self.GetNewID()
+        if self.__FindID__(id, PAUSE) is not None:
+            print(f"Erreur de AddPause : la pause d'ID {id} existe déjà.")
+            return
+        self.__elements.append(EW.Pause(id))
+        print(f"Ajout de la pause d'ID {id}.")
+        
+    def RemovePause(self, id: int):
+        element = self.__FindID__(id, PAUSE)
+        if element != None:
+            del self.__elements[self.__elements.index(element)]
+            print(f"Suppression de la pause d'ID {id}.")
+        else:
+            print(f"Erreur de RemovePause : la pause d'ID {id} n'existe pas.")
+        
+    def UpdateAll(self, json: dict):
+        size = len(json["elements"])
+        if (size != len(self.__elements)):
+            print("Erreur de mise à jour des exercices : taille différente entre le JSON et la structure interne.")
+            return
+        
+        newArray = []
+        for elemSW in self.__elements:
+            elemJSON = funcJSON.findID(json, elemSW.GetID(), elemSW.GetType())
+            if elemJSON is None:
+                print(f"Erreur de mise à jour des exercices : l'élément d'ID {elemSW.GetID()} et de type {elemSW.GetType()} n'a pas été trouvé dans le JSON.")
+                return
+            
+            if elemSW.GetType() == EXERCICE:
+                newArray.append(EW.Exercice(id=elemSW.GetID(), nom=elemJSON["nom"], series=elemJSON["series"], repetitions=elemJSON["repetitions"]))
+                    
+            elif elemSW.GetType() == PAUSE:   
+                newArray.append(EW.Pause(id=elemSW.GetID(), duree_secondes=elemJSON["duree_secondes"]))
+                    
+        self.__elements = newArray
+        
+    def GetSummaryJSON(self, ID_exo_en_cours: int, Exercice_en_cours: dict):
+        elements_summary = []
 
+        for elem in self.__elements:
 
+            # On ignore les pauses
+            if elem.GetType() != EXERCICE:
+                continue
+
+            # Cas 1 : exercice déjà terminé
+            if elem.GetDone():
+                elements_summary.append({
+                    "type": elem.GetType(),
+                    "nom": elem.GetNom(),
+                    "series": elem.GetSeries(),
+                    "repetitions": elem.GetRepetitions(),
+                    "id": elem.GetID(),
+                    "done": True
+                })
+
+            # Cas 2 : exercice en cours
+            elif elem.GetID() == ID_exo_en_cours:
+                elements_summary.append({
+                    "type": elem.GetType(),
+                    "nom": elem.GetNom(),
+                    "series": elem.GetSeries() - Exercice_en_cours.get("séries_restantes", 0),
+                    "repetitions": elem.GetRepetitions() - Exercice_en_cours.get("répétitions_restantes", 0),
+                    "id": elem.GetID(),
+                    "done": False
+                })
+
+            # Cas 3 : exercice pas encore commencé
+            else:
+                elements_summary.append({
+                    "type": elem.GetType(),
+                    "nom": elem.GetNom(),
+                    "series": 0,
+                    "repetitions": 0,
+                    "id": elem.GetID(),
+                    "done": False
+                })
+
+        summary = {
+            "nom": "Séance",
+            "elements": elements_summary
+        }
+
+        return json.dumps(summary, ensure_ascii=False)
+    
+    def ResetDone(self):
+        for element in self.__elements:
+            element.SetDone(False)
+        
+    def ToJSON(self):
+        elements_json = []
+
+        for elem in self.__elements:
+
+            if elem.GetType() == EXERCICE:
+                elements_json.append({
+                    "type": elem.GetType(),
+                    "nom": elem.GetNom(),
+                    "series": elem.GetSeries(),
+                    "repetitions": elem.GetRepetitions(),
+                    "id": elem.GetID(),
+                    "done": elem.GetDone()
+                })
+
+            elif elem.GetType() == PAUSE:
+                elements_json.append({
+                    "type": elem.GetType(),
+                    "duree_secondes": elem.GetDuree(),
+                    "id": elem.GetID(),
+                    "done": elem.GetDone()
+                })
+
+        workout_json = {
+            "nom": "Séance",
+            "elements": elements_json
+        }
+
+        return json.dumps(workout_json, ensure_ascii=False)
+
+    def GetNextElement(self):
+        for element in self.__elements:
+            if not element.GetDone():
+                return element
+        return None
+    
+    
 class Moteur(metaclass=Singleton):
     def __init__(self):
         # inputs
@@ -40,15 +196,16 @@ class Moteur(metaclass=Singleton):
         self._Rep_RemainingO = None
         self._Set_RemainingO = None
         self._Rest_Time_RemainingO = None
-        self._Session_StateO = None
+        self._Session_StateO = MoteurCOMPOSING
         self._Workout_SummaryO = None
         
         # Variables internes
-        self._ID_exo_global = [0]
-        self._ID_pause_global = [0]
-        self._Pause_en_cours = {"temps_restant": 0}
-        self._Exercice_en_cours = {"séries_restantes": 0, "répétitions_restantes": 0}
-        self._Id_exo_en_cours = -1 # un exercice ou une pause
+        self.__Pause_en_cours = {"temps_restant": 0}
+        self.__Exercice_en_cours = {"séries_restantes": 0, "répétitions_restantes": 0}
+        self.__Id_exo_en_cours = -1
+        
+        ## Le planning de la séance ##
+        self.__Planning_workout = StructWorkout()
 
     # outputs
     @property
@@ -120,24 +277,24 @@ class Moteur(metaclass=Singleton):
             if self.VerifyState(MoteurRUNNING):
                 
                 # On récupère le résumé de la session
-                data = funcJSON.ReadDoneJSON(Id_exo_en_cours, Exercice_en_cours)
+                data = self.__Planning_workout.GetSummaryJSON(self.__Id_exo_en_cours, self.__Exercice_en_cours)
                 
                 # On envoie le résumé de la session au WhiteBoard
                 self._Workout_SummaryO = data
                 
                 # On reset l'état d'avancement des exercices du fichier JSON 
-                funcJSON.ResetDoneJSON()
+                self.__Planning_workout.ResetDone()
                 
                 # On arrête la session en cours
                 self._Session_StateO = MoteurCOMPOSING
                 
-                # On met à jour nos variables globales
-                Id_exo_en_cours = -1
-                Exercice_en_cours["séries_restantes"] = 0
-                Exercice_en_cours["répétitions_restantes"] = 0
-                Pause_en_cours["temps_restant"] = 0
+                # On met à jour nos attributs internes
+                self.__Id_exo_en_cours = -1
+                self.__Exercice_en_cours["séries_restantes"] = 0
+                self.__Exercice_en_cours["répétitions_restantes"] = 0
+                self.__Pause_en_cours["temps_restant"] = 0
             
-            return funcJSON.ReadJSON()
+            return self.__Planning_workout.ToJSON()
         else:
             print("Service Stopworkout appelé par un agent non autorisé :", sender_agent_name)
 
@@ -149,20 +306,32 @@ class Moteur(metaclass=Singleton):
                 # On démarre la session en cours
                 self._Session_StateO = MoteurRUNNING
                 
-                # On récupère le premier exercice du fichier JSON
-                next_exercice = funcJSON.ReadNextExerciceJSON()
+                # On récupère le premier element du fichier JSON
+                next_element = self.__Planning_workout.GetNextElement()
                 
-                # On met à jour nos variables globales
-                global Id_exo_en_cours
-                Id_exo_en_cours = next_exercice["id"]
-                global Exercice_en_cours
-                Exercice_en_cours["séries_restantes"] = next_exercice["series"]
-                Exercice_en_cours["répétitions_restantes"] = next_exercice["repetitions"]
+                if next_element is None:
+                    print("Erreur de Startworkout : aucun exercice ou pause à effectuer.")
+                    
+                    # On arrête la session en cours
+                    self._Session_StateO = MoteurCOMPOSING
+                    return
                 
-                # On met à jour les outputs
-                self._Current_ExerciceO = next_exercice["nom"]
-                self._Rep_RemainingO = Exercice_en_cours["répétitions_restantes"]
-                self._Set_RemainingO = Exercice_en_cours["séries_restantes"]
+                elif next_element.GetType() == EXERCICE:
+                
+                    # On met à jour nos attributs internes
+                    self.__Id_exo_en_cours = next_element.GetID()
+                    self.__Exercice_en_cours["séries_restantes"] = next_element.GetSeries()
+                    self.__Exercice_en_cours["répétitions_restantes"] = next_element.GetRepetitions()
+                    
+                    # On met à jour les outputs
+                    self._Current_ExerciceO = next_element.GetNom()
+                    self._Rep_RemainingO = self.__Exercice_en_cours["répétitions_restantes"]
+                    self._Set_RemainingO = self.__Exercice_en_cours["séries_restantes"]
+                    
+                elif next_element.GetType() == PAUSE:
+                    
+                    # On met à jour les outputs
+                    self._Rest_Time_RemainingO = next_element.GetDuree()
             
         else:
             print("Service Startworkout appelé par un agent non autorisé :", sender_agent_name)
@@ -171,12 +340,9 @@ class Moteur(metaclass=Singleton):
         if(sender_agent_name == "Interface graphique"):
             
             if self.VerifyState(MoteurCOMPOSING):
-                
-                # On retire l'ID de la pause de récupération des IDs globaux
-                self.RemoveIDPause(Recuperationid)
             
-                # On retire la récupération du fichier JSON
-                funcJSON.RemoveExerciceJSON(Recuperationid)
+                # On retire la récupération
+                self.__Planning_workout.RemovePause(Recuperationid)
         else:
             print("Service Removerecuperation appelé par un agent non autorisé :", sender_agent_name)
 
@@ -184,7 +350,9 @@ class Moteur(metaclass=Singleton):
         if(sender_agent_name == "Interface graphique"):
             
             if self.VerifyState(MoteurCOMPOSING):
-                funcJSON.AddRecuperationJSON(id=self.GetNewIDPause())
+                
+                # On ajoute la récupération
+                self.__Planning_workout.AddPause()
         else:
             print("Service Addrecuperation appelé par un agent non autorisé :", sender_agent_name)
 
@@ -192,7 +360,9 @@ class Moteur(metaclass=Singleton):
         if(sender_agent_name == "Interface graphique"):
             
             if self.VerifyState(MoteurCOMPOSING):
-               funcJSON.AddExerciceJSON(id=self.GetNewIDExercice())
+                
+                # On ajoute l'exercice 
+                self.__Planning_workout.AddExercice()
         else:
             print("Service Addexercice appelé par un agent non autorisé :", sender_agent_name)
 
@@ -201,67 +371,22 @@ class Moteur(metaclass=Singleton):
             
             if self.VerifyState(MoteurCOMPOSING):
                 
-                # On retire l'ID de la pause de récupération des IDs globaux
-                self.RemoveIDExercice(Exerciceid)
-                
-                # On retire l'exercice du fichier JSON
-                funcJSON.RemoveExerciceJSON(Exerciceid)
+                # On retire l'exercice 
+                self.__Planning_workout.RemoveExercice(Exerciceid)
         else:
             print("Service Removeexercice appelé par un agent non autorisé :", sender_agent_name)
 
     def VerifyState(self, senssionState):
         if self._Session_StateO != senssionState:
-            match senssionState:
-                case MoteurRUNNING:
-                    print("Erreur : il n'y a pas session en cours.")
-                case MoteurCOMPOSING:
-                    print("Erreur : une session est en cours.")
-                case _:
-                    print("Erreur : état de session inconnu.")
+            if senssionState == MoteurRUNNING:
+                print("Erreur : il n'y a pas session en cours.")
+            elif senssionState == MoteurCOMPOSING:
+                print("Erreur : une session est en cours.")
+            else:
+                print("Erreur : état de session inconnu.")
             return False 
         return True
 
-    def GetNewIDExercice(self):
-        global ID_exo_global
-        ID_exo_global.append(ID_exo_global[-1] + 1)
-        return ID_exo_global[-1]
     
-    def GetNewIDPause(self):
-        global ID_pause_global
-        ID_pause_global.append(ID_pause_global[-1] + 1)
-        return ID_pause_global[-1]
     
-    def FindIDExercice(self, id: int):
-        return id in ID_exo_global
-    
-    def FindIDPause(self, id: int):
-        return id in ID_pause_global
-    
-    def RemoveIDExercice(self, id: int):
-        if self.FindIDExercice(id):
-            global ID_exo_global
-            ID_exo_global.remove(id)
-            print(f"Suppresion de l'exercie d'ID {id} dans ID_exo_global")
-        else:
-            print(f"Erreur de RemoveIDExercice : l'ID {id} n'est pas présent dans ID_exo_global")
-            
-    def RemoveIDPause(self, id: int):
-        if self.FindIDPause(id):
-            global ID_pause_global
-            ID_pause_global.remove(id)
-            print(f"Suppresion de la pause d'ID {id} dans ID_pause_global")
-        else:
-            print(f"Erreur de RemoveIDPause : l'ID {id} n'est pas présent dans ID_pause_global")
-    
-    def VerifyCoherenceIDs(self):
-        data = funcJSON.ReadJSON()
-        for id in ID_exo_global:
-            if funcJSON.findID(data, id, funcJSON.EXERCICE) == None:
-                print(f"Erreur de cohérence : l'ID de l'exercice {id} n'existe pas dans le JSON.")
-                return False
-        for id in ID_pause_global:
-            if funcJSON.findID(data, id, funcJSON.EXERCICE) == None:
-                print(f"Erreur de cohérence : l'ID de la pause {id} n'existe pas dans le JSON.")
-                return False
-        return True
         
