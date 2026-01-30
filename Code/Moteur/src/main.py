@@ -108,57 +108,35 @@ def Rep_Validated_input_callback(io_type, name, value_type, value, my_data):
         
         # On ne traite que si une session est en cours
         if not agent_object.VerifyState(MoteurRUNNING):
+            print("Pas de session en cours, on ignore l'entrée rep_validated")
             return
 
         # Sécurité : aucun exercice en cours
-        if agent_object._Moteur__Id_exo_en_cours == -1:
+        if agent_object._Moteur__Exercice_en_cours["id"] == -1:
+            print("Aucun exercice en cours, on ignore l'entrée rep_validated")
             return
-
-        # --- 1. Décrément des répétitions ---
-        agent_object._Moteur__Exercice_en_cours["répétitions_restantes"] -= 1
-        # Mise à jour output
-        agent_object._Rep_RemainingO = agent_object._Moteur__Exercice_en_cours["répétitions_restantes"]
-
-        # --- 2. Si répétitions terminées ---
-        if agent_object._Moteur__Exercice_en_cours["répétitions_restantes"] <= 0:
-
-            agent_object._Moteur__Exercice_en_cours["séries_restantes"] -= 1
-            agent_object._Set_RemainingO = agent_object._Moteur__Exercice_en_cours["séries_restantes"]
-
-            # --- 2.a Série suivante ---
-            if agent_object._Moteur__Exercice_en_cours["séries_restantes"] > 0:
-                # Reset répétitions
-                current_exo = agent_object._Moteur__Planning_workout._StructWorkout__FindID__(
-                    agent_object._Moteur__Id_exo_en_cours, EXERCICE
-                )
-                agent_object._Moteur__Exercice_en_cours["répétitions_restantes"] = current_exo.GetRepetitions()
-                agent_object._Rep_RemainingO = agent_object._Moteur__Exercice_en_cours["répétitions_restantes"]
-            # --- 2.b Exercice terminé ---
-            else:
-                current_exo = agent_object._Moteur__Planning_workout._StructWorkout__FindID__(
-                    agent_object._Moteur__Id_exo_en_cours, EXERCICE
-                )
-                current_exo.SetDone(True)
-
-                agent_object._Moteur__Id_exo_en_cours = -1
-                # --- 3. Passage à l'élément suivant ---
-                next_elem = agent_object._Moteur__Planning_workout.GetNextElement()
-
-                if next_elem is None:
+        
+        nb_reps_restants = agent_object.DecrementReps()
+        
+        if nb_reps_restants <= 0:
+            # Si plus de répétitions, on décrémente les séries
+            
+            nb_sets_restantes = agent_object.DecrementSets()
+            
+            if nb_sets_restantes <= 0:
+                # On met à jour l'exercice courent comme fait
+                agent_object.SetDoneCurrentExercice()
+                
+                # On passe au prochain élément
+                elem = agent_object.GoNextElement()
+                
+                if elem is None:
+                    
                     # Séance terminée
-                    agent_object._Session_StateO = MoteurCOMPOSING
-                    return
-
-                if next_elem.GetType() == PAUSE:
-                    agent_object._Rest_Time_RemainingO = next_elem.GetDuree()
-                elif next_elem.GetType() == EXERCICE:
-                    agent_object._Moteur__Id_exo_en_cours = next_elem.GetID()
-                    agent_object._Moteur__Exercice_en_cours["séries_restantes"] = next_elem.GetSeries()
-                    agent_object._Moteur__Exercice_en_cours["répétitions_restantes"] = next_elem.GetRepetitions()
-
-                    agent_object._Current_ExerciceO = next_elem.GetNom()
-                    agent_object._Set_RemainingO = next_elem.GetSeries()
-                    agent_object._Rep_RemainingO = next_elem.GetRepetitions()
+                    agent_object.StopworkoutIntra()
+                
+            else:
+                agent_object.ResetReps(agent_object._Moteur__Exercice_en_cours["id"])
     except:
         print(traceback.format_exc())
 

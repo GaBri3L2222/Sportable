@@ -6,7 +6,7 @@ class ElemsWorkout(ABC):
         pass
     
     @abstractmethod
-    def SetDone(self):
+    def SetDone(self, done: bool):
         pass
     
     @abstractmethod
@@ -23,7 +23,7 @@ class ElemsWorkout(ABC):
     
 class Exercice(ElemsWorkout):
 
-    def __init__(self, id: int, nom: str = "Pompes", series: int = 1, repetitions: int = 10, done: bool = False):
+    def __init__(self, id: int, nom: str = "Pompes", series: int = 2, repetitions: int = 10, done: bool = False):
         self.__nom = nom
         self.__series = series
         self.__repetitions = repetitions
@@ -35,8 +35,8 @@ class Exercice(ElemsWorkout):
         self.__series = series
         self.__repetitions = repetitions
 
-    def SetDone(self):
-        self.__done = True
+    def SetDone(self, done: bool):
+        self.__done = done
         
     def GetID(self):
         return self.__id
@@ -67,8 +67,8 @@ class Pause(ElemsWorkout):
     def Update(self, duree: int):
         self.__duree = duree
 
-    def SetDone(self):
-        self.__done = True
+    def SetDone(self, done: bool):
+        self.__done = done
         
     def GetID(self):
         return self.__id
