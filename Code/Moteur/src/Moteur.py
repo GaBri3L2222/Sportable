@@ -186,7 +186,6 @@ class StructWorkout():
                 return element
         return None
     
-    
 class Moteur(metaclass=Singleton):
     def __init__(self):
         # inputs
@@ -306,10 +305,13 @@ class Moteur(metaclass=Singleton):
         else:
             print("Service Stopworkout appelé par un agent non autorisé :", sender_agent_name)
             
-    def Startworkout(self, sender_agent_name, sender_agent_uuid):
+    def Startworkout(self, sender_agent_name, sender_agent_uuid, Displayjson):
         if(sender_agent_name == "Interface graphique" or sender_agent_name == "Ingescape Circle"):
             
             if self.VerifyState(MoteurCOMPOSING):
+                
+                # On met à jour le planning de la séance
+                self.__Planning_workout.UpdateAll(json.loads(Displayjson))
             
                 # On démarre la session en cours
                 self.Session_StateO = MoteurRUNNING
@@ -466,7 +468,12 @@ class Moteur(metaclass=Singleton):
         exercice = self.__Planning_workout.FindID(self.__Exercice_en_cours["id"], EXERCICE)
         if exercice is not None:
             exercice.SetDone(True)
-            
+          
+    def SetDoneCurrentPause(self):
+        pause = self.__Planning_workout.FindID(self.__Pause_en_cours["id"], PAUSE)
+        if pause is not None:
+            pause.SetDone(True)
+      
     def GoNextElement(self):
         elemnt = self.__Planning_workout.GetNextElement()
         if elemnt is not None:
@@ -483,6 +490,7 @@ class Moteur(metaclass=Singleton):
                 # On met à jour les ancien attributs de pause
                 self.__Pause_en_cours["temps_restant"] = 0
                 self.__Pause_en_cours["id"] = -1
+                self.Rest_Time_RemainingO = 0
                 
                 return EXERCICE
             
@@ -496,7 +504,9 @@ class Moteur(metaclass=Singleton):
                 self.__Exercice_en_cours["id"] = -1
                 self.__Exercice_en_cours["séries_restantes"] = 0
                 self.__Exercice_en_cours["répétitions_restantes"] = 0
-                self.Current_ExerciceO = None
+                self.Current_ExerciceO = "None"
+                self.Rep_RemainingO = 0
+                self.Set_RemainingO = 0
                 
                 return PAUSE
             
