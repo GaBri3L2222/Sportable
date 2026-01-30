@@ -13,6 +13,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import json
+from collections import deque
+import time
 
 
 class Singleton(type):
@@ -25,9 +27,9 @@ class Singleton(type):
 
 class Vision(metaclass=Singleton):
     def __init__(self):
-        # Initialisation MediaPipe
         self.mp_pose = mp.solutions.pose
         self.mp_drawing = mp.solutions.drawing_utils
+        self.pose = self.mp_pose.Pose(static_image_mode=False, model_complexity=1, min_detection_confidence=0.5, min_tracking_confidence=0.5)
         
         # inputs
         self.Current_ExerciceI = None
@@ -37,12 +39,18 @@ class Vision(metaclass=Singleton):
         self._Vision_StateO = None
         self._FeedbackO = None
         
-        # Variables de session
+
         self.counter = 0
-        self.stage = "down"
-        self.feedback = "EN ATTENTE..."
+        self.stage = "IDLE"
+        self.feedback = "WAITING..."
         self.tracked_joints = []
         self.skeleton_color = (100, 100, 100)
+        self.buffer_size = 7
+        self.angle_buffers = {}
+
+        # Machine d'état pour le comptage des répétitions
+        self.fsm = {}
+
 
     # outputs
     def set_Rep_ValidatedO(self):
@@ -78,9 +86,8 @@ class Vision(metaclass=Singleton):
         if self._FeedbackO is not None:
             igs.output_set_string("feedback", self._FeedbackO)
 
-
-
     def calculate_angle(self, a, b, c):
+        """Calcul des angles entre les points a, b, c"""
         a = np.array(a)
         b = np.array(b)
         c = np.array(c)
@@ -91,6 +98,53 @@ class Vision(metaclass=Singleton):
         if angle > 180.0:
             angle = 360 - angle
         return angle
+
+    def smooth_angle(self, key, value):
+        """Lissage des angles avec une moyenne mobile, évite les faux positifs"""
+        if key not in self.angle_buffers:
+            self.angle_buffers[key] = deque(maxlen=self.buffer_size)
+        buf = self.angle_buffers[key]
+        buf.append(value)
+        return float(sum(buf) / len(buf))
+    
+    def fsm_append_state(self, exercise, state):
+        if state is None:
+            return self.fsm.setdefault(exercise, {"state": None, "seq": []})
+        entry = self.fsm.setdefault(exercise, {"state": None, "seq": []})
+        prev = entry["state"]
+        if state != prev:
+            entry["state"] = state
+            if len(entry["seq"]) == 0 or entry["seq"][-1] != state:
+                entry["seq"].append(state)
+        return entry
+
+    def fsm_check_and_count(self, exercise):
+        entry = self.fsm.get(exercise)
+        if not entry:
+            return False
+        seq = entry["seq"]
+        # Squat doit suivre la séquence [S1, S2, S3, S2, S1]
+        if exercise == 'squats' and len(seq) >= 5:
+            pattern = ['S1','S2','S3','S2','S1']
+            i = 0
+            found = True
+            for token in pattern:
+                try:
+                    j = seq.index(token, i)
+                except ValueError:
+                    found = False
+                    break
+                i = j + 1
+            if found:
+                entry['seq'] = []
+                return True
+            if exercise != 'squats' and len(seq) >= 3:
+                for i in range(len(seq)-2):
+                    a,b,c = seq[i], seq[i+1], seq[i+2]
+                    if a != b and b != c and a == c:
+                        entry['seq'] = []
+                        return True
+        return False
 
     def get_coords(self, landmarks, part_name):
         return [
@@ -151,16 +205,15 @@ class Vision(metaclass=Singleton):
     def draw_colored_skeleton(self, image, landmarks, skeleton_color):
         h, w, _ = image.shape
         
-        # Connexions du squelette MediaPipe
         connections = [
-            (11, 13), (13, 15),  # Bras gauche
-            (12, 14), (14, 16),  # Bras droit
-            (11, 23), (12, 24),  # Torse vers hanches
+            (11, 13), (13, 15),  # bras gauche
+            (12, 14), (14, 16),  # bras droit
+            (11, 23), (12, 24),  # épaules aux hanches
             (23, 24),             # Hanches
-            (23, 25), (25, 27),  # Jambe gauche
-            (24, 26), (26, 28),  # Jambe droite
-            (11, 12),             # Épaules
-            (9, 10),              # Yeux
+            (23, 25), (25, 27),  # jambe gauche
+            (24, 26), (26, 28),  # jambe droite
+            (11, 12),             # épaules
+            (9, 10),              # yeux
         ]
         
         # Dessiner les connexions
@@ -183,16 +236,22 @@ class Vision(metaclass=Singleton):
         elbow = self.get_coords(landmarks, "LEFT_ELBOW")
         wrist = self.get_coords(landmarks, "LEFT_WRIST")
         elbow_angle = self.calculate_angle(shoulder, elbow, wrist)
+        elbow_angle = self.smooth_angle('pompes_elbow', elbow_angle)
         
         hip = self.get_coords(landmarks, "LEFT_HIP")
         knee = self.get_coords(landmarks, "LEFT_KNEE")
         back_angle = self.calculate_angle(shoulder, hip, knee)
+        back_angle = self.smooth_angle('pompes_back', back_angle)
         
         ankle = self.get_coords(landmarks, "LEFT_ANKLE")
         leg_angle = self.calculate_angle(hip, knee, ankle)
+        leg_angle = self.smooth_angle('pompes_leg', leg_angle)
 
+        # Si l'angle est > 150°, le dos et les jambes sont considérés comme droits
         form_is_valid = back_angle > 150 and leg_angle > 150
-        
+        if back_angle < 170:
+            self.feedback = 'Hips too high'
+
         self.skeleton_color = (0, 255, 0) if form_is_valid else (0, 165, 255)
         
         self.tracked_joints = [
@@ -202,18 +261,40 @@ class Vision(metaclass=Singleton):
             ("LEFT_KNEE", (0, 255, 0) if leg_angle > 150 else (0, 0, 255)),
         ]
         
-        cv2.putText(image, f"Coude: {int(elbow_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
-        cv2.putText(image, f"Dos: {int(back_angle)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if back_angle > 150 else (0,0,255), 1)
+        cv2.putText(image, f"Elbow: {int(elbow_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        cv2.putText(image, f"Back: {int(back_angle)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if back_angle > 150 else (0,0,255), 1)
         
         if not form_is_valid:
-            self.feedback = "DOS OU JAMBES PLIES !"
+            self.feedback = "BACK OR LEGS BENT!"
         else:
-            self.feedback = "FORME OK"
+            self.feedback = "GOOD FORM"
             
-            if elbow_angle > 160:
-                self.stage = "up"
-            if elbow_angle < 90 and self.stage == "up":
-                self.stage = "down"
+            prev_state = self.fsm.get('pompes', {}).get('state')
+            up_thr = 160
+            down_thr = 90
+            hyst = 5
+            state = prev_state or 'IDLE'
+            if prev_state == 'UP':
+                if elbow_angle < down_thr + hyst:
+                    state = 'DOWN'
+                else:
+                    state = 'UP'
+            elif prev_state == 'DOWN':
+                if elbow_angle > up_thr - hyst:
+                    state = 'UP'
+                else:
+                    state = 'DOWN'
+            else:
+                if elbow_angle > up_thr:
+                    state = 'UP'
+                elif elbow_angle < down_thr:
+                    state = 'DOWN'
+                else:
+                    state = 'TRANSITION'
+
+            self.fsm_append_state('pompes', state)
+            self.stage = state
+            if self.fsm_check_and_count('pompes'):
                 self.counter += 1
                 self.set_Rep_ValidatedO()
 
@@ -222,14 +303,17 @@ class Vision(metaclass=Singleton):
         knee = self.get_coords(landmarks, "LEFT_KNEE")
         ankle = self.get_coords(landmarks, "LEFT_ANKLE")
         knee_angle = self.calculate_angle(hip, knee, ankle)
-        
+        knee_angle = self.smooth_angle('squat_knee', knee_angle)
+
         shoulder = self.get_coords(landmarks, "LEFT_SHOULDER")
         hip_angle = self.calculate_angle(shoulder, hip, knee)
-        
+        hip_angle = self.smooth_angle('squat_hip', hip_angle)
+
+        # Vérification de la profondeur du squat
         depth_check = hip[1] > (knee[1] - 0.1)
 
         valid_form = hip_angle > 60
-        
+
         self.skeleton_color = (0, 255, 0) if valid_form and (depth_check or knee_angle < 100) else (0, 165, 255)
         
         self.tracked_joints = [
@@ -238,19 +322,69 @@ class Vision(metaclass=Singleton):
             ("LEFT_ANKLE", (0, 165, 255)),
         ]
         
-        cv2.putText(image, f"Genoux: {int(knee_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
-        cv2.putText(image, f"Buste: {int(hip_angle)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if hip_angle > 60 else (0,0,255), 1)
+        cv2.putText(image, f"Knees: {int(knee_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        cv2.putText(image, f"Torso: {int(hip_angle)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if hip_angle > 60 else (0,0,255), 1)
 
         if not valid_form:
-            self.feedback = "BUSTE TROP PENCHE !"
+            self.feedback = "TORSO TOO FORWARD!"
         elif not depth_check and knee_angle < 100:
-            self.feedback = "DESCENDEZ PLUS BAS !"
+            self.feedback = "GO DEEPER!"
         else:
-            self.feedback = "FORME OK"
-            if knee_angle > 160:
-                self.stage = "up"
-            if knee_angle < 90 and self.stage == "up" and valid_form:
-                self.stage = "down"
+            self.feedback = "FORM OK"
+
+            # FSM pour les squats avec 3 états: S1 (debout), S2 (mi-squat), S3 (bas)
+            prev_state = self.fsm.get('squats', {}).get('state')
+            t = {
+                'S1_up': 32,
+                'S2_low': 35,
+                'S2_high': 65,
+                'S3_low': 75,
+                'S3_high': 95,
+            }
+            hyst = 3
+            # Déterminer l'état actuel
+            if prev_state == 'S1':
+                if knee_angle > t['S2_low'] + hyst:
+                    state = 'S2'
+                else:
+                    state = 'S1'
+            elif prev_state == 'S2':
+                if knee_angle > t['S3_low'] + hyst:
+                    state = 'S3'
+                elif knee_angle < t['S2_low'] - hyst:
+                    state = 'S1'
+                else:
+                    state = 'S2'
+            elif prev_state == 'S3':
+                if knee_angle < t['S3_low'] - hyst:
+                    state = 'S2'
+                else:
+                    state = 'S3'
+            else:
+                # Pour l'état initial
+                if knee_angle < t['S1_up']:
+                    state = 'S1'
+                elif t['S2_low'] <= knee_angle <= t['S2_high']:
+                    state = 'S2'
+                elif t['S3_low'] <= knee_angle <= t['S3_high']:
+                    state = 'S3'
+                else:
+                    state = 'S2'
+
+            # Vérification des genoux au-delà des orteils
+            try:
+                toe = landmarks[self.mp_pose.PoseLandmark.LEFT_FOOT_INDEX.value]
+                knee_lm = landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value]
+                delta = 0.02
+                knees_over_toes = knee_lm.x > toe.x + delta
+                if knees_over_toes:
+                    self.feedback = 'Knees over toes!'
+            except Exception:
+                pass
+
+            self.fsm_append_state('squats', state)
+            self.stage = state
+            if self.fsm_check_and_count('squats') and valid_form:
                 self.counter += 1
                 self.set_Rep_ValidatedO()
 
@@ -277,12 +411,12 @@ class Vision(metaclass=Singleton):
             ("LEFT_HIP", (0, 165, 255)),
         ]
         
-        cv2.putText(image, f"Bras Amp: {int(arm_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        cv2.putText(image, f"Arm Amp: {int(arm_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
         
         if not valid_form:
-            self.feedback = "TENDEZ LES BRAS !"
+            self.feedback = "STRAIGHTEN YOUR ARMS!"
         else:
-            self.feedback = "GO !"
+            self.feedback = "GO!"
             
             wrist_y = l_wrist[1]
             shoulder_y = l_shoulder[1]
@@ -314,13 +448,13 @@ class Vision(metaclass=Singleton):
             ("RIGHT_ANKLE", (0, 165, 255)),
         ]
         
-        cv2.putText(image, f"Hanche: {int(hip_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
-        cv2.putText(image, f"Genou: {int(knee_angle)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if knee_angle > 150 else (0,0,255), 1)
+        cv2.putText(image, f"Hip: {int(hip_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        cv2.putText(image, f"Knee: {int(knee_angle)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if knee_angle > 150 else (0,0,255), 1)
         
         if not valid_form:
-            self.feedback = "JAMBE TROP PLIEE !"
+            self.feedback = "LEG TOO BENT!"
         else:
-            self.feedback = "BONNE FORME"
+            self.feedback = "GOOD FORM"
             if hip_angle > 160:
                 self.stage = "down"
             if hip_angle < 100 and self.stage == "down" and valid_form:
@@ -353,16 +487,16 @@ class Vision(metaclass=Singleton):
             ("LEFT_HIP", (0, 255, 0) if valid_form else (0, 0, 255)),
         ]
         
-        cv2.putText(image, f"Genou L: {int(l_knee_height * 100)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
-        cv2.putText(image, f"Genou R: {int(r_knee_height * 100)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        cv2.putText(image, f"Knee L: {int(l_knee_height * 100)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        cv2.putText(image, f"Knee R: {int(r_knee_height * 100)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
         cv2.putText(image, f"Posture: {int(posture_angle)}", (10, 190), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if valid_form else (0,0,255), 1)
         
         if not valid_form:
-            self.feedback = "BUSTE DROIT !"
+            self.feedback = "KEEP BACK STRAIGHT!"
         elif not knee_is_high:
-            self.feedback = "MONTEZ LES GENOUX !"
+            self.feedback = "RAISE YOUR KNEES!"
         else:
-            self.feedback = "PARFAIT !"
+            self.feedback = "PERFECT!"
             if (l_knee_height > 0.15 or r_knee_height > 0.15) and valid_form:
                 if self.stage == "down":
                     self.stage = "up"
@@ -372,8 +506,7 @@ class Vision(metaclass=Singleton):
                 self.set_Rep_ValidatedO()
 
     def process_frame(self, image, landmarks, exercise_name):
-        # Initialiser les variables
-        self.feedback = "EN ATTENTE..."
+        self.feedback = "WAITING..."
         self.tracked_joints = []
         self.skeleton_color = (100, 100, 100)
         
@@ -389,32 +522,28 @@ class Vision(metaclass=Singleton):
             elif exercise_name == 'montee_genou':
                 self.analyze_montee_genou(landmarks, image)
             else:
-                self.feedback = f"EXERCICE INCONNU: {exercise_name}"
+                self.feedback = f"UNKNOWN EXERCISE: {exercise_name}"
         except Exception as e:
-            self.feedback = f"ERREUR: {str(e)[:30]}"
+            self.feedback = f"ERROR: {str(e)[:30]}"
         
-        # Envoyer les landmarks à l'interface
         self.send_skeleton_to_interface(landmarks)
     
     def draw_dashboard(self, image, results):
-        # Dashboard
         cv2.rectangle(image, (0,0), (350, 120), (245,117,16), -1)
         
         cv2.putText(image, 'REPS', (15,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 1, cv2.LINE_AA)
         cv2.putText(image, str(self.counter), (10,80), cv2.FONT_HERSHEY_SIMPLEX, 2, (255,255,255), 2, cv2.LINE_AA)
         
-        cv2.putText(image, 'PHASE', (130,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 1, cv2.LINE_AA)
+        cv2.putText(image, 'STATE', (130,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 1, cv2.LINE_AA)
         cv2.putText(image, self.stage, (120,80), cv2.FONT_HERSHEY_SIMPLEX, 2, (255,255,255), 2, cv2.LINE_AA)
         
-        color_feedback = (0,255,0) if "OK" in self.feedback or "GO" in self.feedback or "PARFAIT" in self.feedback else (0,0,255) if "PENCHE" in self.feedback or "PLIE" in self.feedback or "BASSE" in self.feedback or "DROIT" in self.feedback or "MONTEZ" in self.feedback or "TENDEZ" in self.feedback else (0, 165, 255)
+        color_feedback = (0,255,0) if "OK" in self.feedback or "GO" in self.feedback or "PERFECT" in self.feedback else (0,0,255) if "FORWARD" in self.feedback or "BENT" in self.feedback or "DEEPER" in self.feedback or "STRAIGHT" in self.feedback or "RAISE" in self.feedback or "STRAIGHTEN" in self.feedback else (0, 165, 255)
         cv2.rectangle(image, (0, 680), (1280, 720), color_feedback, -1)
         cv2.putText(image, self.feedback, (400, 710), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
 
-        # Squelette coloré
         if results.pose_landmarks is not None:
             self.draw_colored_skeleton(image, results.pose_landmarks.landmark, self.skeleton_color)
             
-            # Articulations trackées
             landmarks = results.pose_landmarks.landmark
             for joint_name, joint_color in self.tracked_joints:
                 try:

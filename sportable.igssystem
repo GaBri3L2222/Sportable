@@ -709,6 +709,10 @@
                             "description": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">programation, execution de la seance</p></body></html>",
                             "name": "session_state",
                             "type": "STRING"
+                        },
+                        {
+                            "name": "feedback",
+                            "type": "STRING"
                         }
                     ],
                     "services": [
@@ -776,7 +780,7 @@
                     "width": 349,
                     "x": -496.1754371102336,
                     "y": 567.2953113512052,
-                    "z": 0.9800000000000006
+                    "z": 1.0100000000000007
                 },
                 {
                     "agent": {
@@ -796,6 +800,14 @@
                                 "isAttachedToCircle": false,
                                 "mac": "C4:75:AB:C8:DD:04",
                                 "uuid": "3fa5c7c9-3d7d-479a-b422-6008d42b5df4"
+                            },
+                            {
+                                "commandLine": "C:\\Users\\xdlol\\miniconda3\\envs\\sportable\\python.exe main.py --verbose --port 5670 --name Vision",
+                                "hostname": "PCLBG2",
+                                "ip": "192.168.1.157",
+                                "isAttachedToCircle": false,
+                                "mac": "C4:75:AB:C8:DD:04",
+                                "uuid": "a06a2d67-e47a-443c-a363-bb303fd3be09"
                             }
                         ]
                     },
@@ -811,6 +823,16 @@
                 },
                 {
                     "agent": {
+                        "instances": [
+                            {
+                                "commandLine": "C:\\Users\\xdlol\\miniconda3\\envs\\sportable\\python.exe main.py --verbose --port 5670 --device Wi-Fi --name Interface graphique",
+                                "hostname": "PCLBG2",
+                                "ip": "192.168.1.157",
+                                "isAttachedToCircle": false,
+                                "mac": "C4:75:AB:C8:DD:04",
+                                "uuid": "64990f5d-bfa4-4501-aeeb-f41a1395534f"
+                            }
+                        ]
                     },
                     "class": "d94ef2f6-b458-47e7-9a17-b82d17109878",
                     "height": 254,
@@ -818,9 +840,9 @@
                     "simulationTime": 5000,
                     "uuid": "78b3b649-c7d5-4a7a-8100-942405c71ba3",
                     "width": 250,
-                    "x": 475.45375999937664,
-                    "y": 315.0759922116998,
-                    "z": 0.9900000000000007
+                    "x": 461.52647450581514,
+                    "y": 374.8813946252286,
+                    "z": 1.0300000000000007
                 },
                 {
                     "data": {
@@ -837,7 +859,7 @@
                     "width": 250,
                     "x": -653.6673265353878,
                     "y": -31.6634393983756,
-                    "z": 1.0000000000000007
+                    "z": 1.260000000000001
                 },
                 {
                     "data": {
@@ -875,7 +897,7 @@
                     "width": 250,
                     "x": 426.76523990824194,
                     "y": -160.24238475551545,
-                    "z": 0.9200000000000006
+                    "z": 1.2300000000000009
                 },
                 {
                     "data": {
@@ -1007,6 +1029,12 @@
                         "fromInput": "chatMessage",
                         "to": "Moteur",
                         "toOutput": "current_exercice"
+                    },
+                    {
+                        "from": "Interface graphique",
+                        "fromInput": "feedback",
+                        "to": "Vision",
+                        "toOutput": "feedback"
                     }
                 ],
                 "others": [
