@@ -246,7 +246,9 @@ class Interface_graphique(metaclass=Singleton):
             self.signal_bridge.update_current_exercice.connect(self.window.update_current_exercice_display)
     
     def add_exercise(self, exercise_name, reps, sets):
-        id = igs.service_call("Moteur", "Addexercice")
+        result = igs.service_call("Moteur", "addExercice", (), "")
+        id = result[0] if result and len(result) > 0 else None
+        print(f"Exercise ID: {id}")
         """Add exercise to the list"""
         self.exercises.append({
             "type": "exercice",
@@ -267,9 +269,9 @@ class Interface_graphique(metaclass=Singleton):
                 item = self.exercises.pop(index)
                 try:
                     if item.get("type") == "pause":
-                        igs.service_call("Moteur", "Removerecuperation", item.get("id"))
+                        igs.service_call("Moteur", "removeRecuperation", item.get("id"),"")
                     else:
-                        igs.service_call("Moteur", "Removeexercice", item.get("id"))
+                        igs.service_call("Moteur", "removeExercice", item.get("id"),"")
                 except:
                     pass
                 if self.window:
@@ -281,7 +283,7 @@ class Interface_graphique(metaclass=Singleton):
             self.current_exercise_index = 0
             js = {'nom':'Séance', 'elements': self.exercises }
             try:
-                igs.service_call("Moteur", "startWorkout",json.dumps(js))
+                igs.service_call("Moteur", "startWorkout",json.dumps(js),"")
             except:
                 pass  # Service might not be available yet
             if self.window:
@@ -291,7 +293,7 @@ class Interface_graphique(metaclass=Singleton):
     def stop_workout(self):
         """Stop the workout session"""
         try:
-            js = igs.service_call("Moteur", "stopWorkout")
+            js = igs.service_call("Moteur", "stopWorkout",None,"")
             self.exercises = js.elements
         except:
             pass  # Service might not be available yet
@@ -314,7 +316,8 @@ class Interface_graphique(metaclass=Singleton):
                 
     def add_rest(self, duration_seconds: int):
             try:
-                rest_id = igs.service_call("Moteur", "Addrecuperation")
+                result = igs.service_call("Moteur", "addRecuperation", None, "")
+                rest_id = result[0] if result and len(result) > 0 else None
             except:
                 rest_id = None
             self.exercises.append({
