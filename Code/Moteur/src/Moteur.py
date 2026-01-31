@@ -51,14 +51,17 @@ class StructWorkout():
             return
         self.__elements.append(EW.Exercice(id))
         print(f"Ajout de l'exercice d'ID {id}.")
+        return id
         
     def RemoveExercice(self, id: int):
         element = self.FindID(id, EXERCICE)
         if element != None:
             del self.__elements[self.__elements.index(element)]
             print(f"Suppression de l'exercice d'ID {id}.")
+            return True
         else:
             print(f"Erreur de RemoveExercice : l'exercice d'ID {id} n'existe pas.")
+            return False
         
     def AddPause(self):
         id = self.GetNewID()
@@ -67,14 +70,17 @@ class StructWorkout():
             return
         self.__elements.append(EW.Pause(id))
         print(f"Ajout de la pause d'ID {id}.")
+        return id
         
     def RemovePause(self, id: int):
         element = self.FindID(id, PAUSE)
         if element != None:
             del self.__elements[self.__elements.index(element)]
             print(f"Suppression de la pause d'ID {id}.")
+            return True
         else:
             print(f"Erreur de RemovePause : la pause d'ID {id} n'existe pas.")
+            return False
         
     def UpdateAll(self, json: dict):
         size = len(json["elements"])
@@ -358,10 +364,10 @@ class Moteur(metaclass=Singleton):
             if self.VerifyState(MoteurCOMPOSING):
             
                 # On retire la récupération
-                self.__Planning_workout.RemovePause(Recuperationid)
+                bool = self.__Planning_workout.RemovePause(Recuperationid)
                 
                 # On retourne le planning mis à jour
-                return self.__Planning_workout.ToJSON()
+                return bool
         else:
             print("Service Removerecuperation appelé par un agent non autorisé :", sender_agent_name)
 
@@ -371,10 +377,10 @@ class Moteur(metaclass=Singleton):
             if self.VerifyState(MoteurCOMPOSING):
                 
                 # On ajoute la récupération
-                self.__Planning_workout.AddPause()
+                newIDPause = self.__Planning_workout.AddPause()
                 
                 # On retourne le planning mis à jour
-                return self.__Planning_workout.ToJSON()
+                return newIDPause
         else:
             print("Service Addrecuperation appelé par un agent non autorisé :", sender_agent_name)
 
@@ -384,10 +390,10 @@ class Moteur(metaclass=Singleton):
             if self.VerifyState(MoteurCOMPOSING):
                 
                 # On ajoute l'exercice 
-                self.__Planning_workout.AddExercice()
+                newIDExo = self.__Planning_workout.AddExercice()
                 
                 # On retourne le planning mis à jour
-                return self.__Planning_workout.ToJSON()
+                return newIDExo
         else:
             print("Service Addexercice appelé par un agent non autorisé :", sender_agent_name)
 
@@ -397,10 +403,10 @@ class Moteur(metaclass=Singleton):
             if self.VerifyState(MoteurCOMPOSING):
                 
                 # On retire l'exercice 
-                self.__Planning_workout.RemoveExercice(Exerciceid)
+                bool = self.__Planning_workout.RemoveExercice(Exerciceid)
                 
                 # On retourne le planning mis à jour
-                return self.__Planning_workout.ToJSON()
+                return bool
         else:
             print("Service Removeexercice appelé par un agent non autorisé :", sender_agent_name)
 
