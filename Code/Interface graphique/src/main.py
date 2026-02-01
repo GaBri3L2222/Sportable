@@ -184,9 +184,9 @@ def Session_State_input_callback(io_type, name, value_type, value, my_data):
         
         # Switch view based on session state
         if agent_object.window:
-            if value == "configuration":
+            if value == "composing":
                 agent_object.window.show_config_view()
-            elif value == "execution":
+            elif value == "running":
                 agent_object.window.show_execution_view()
         # add code here if needed
     except:

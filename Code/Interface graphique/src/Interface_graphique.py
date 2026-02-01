@@ -301,7 +301,7 @@ class Interface_graphique(metaclass=Singleton):
         """Stop the workout session"""
         try:
             js = igs.service_call("Moteur", "stopWorkout",None,"")
-            self.exercises = js.elements
+            self.exercises = js.elements # TODO
         except:
             pass  # Service might not be available yet
         if self.window:
@@ -410,8 +410,9 @@ class WorkoutWindow(QMainWindow):
             ex_form = QFormLayout()
             ex_form.setSpacing(10)
 
-            self.ex_name_input = QLineEdit()
-            self.ex_name_input.setPlaceholderText("Nom de l'exercice")
+            self.ex_name_input = QComboBox()
+            listeExos=["pompes", "squats","jumping_jacks","lever_jambes","montee_genou"]
+            self.ex_name_input.addItems(listeExos)
             ex_form.addRow("Exercice :", self.ex_name_input)
 
             self.ex_reps_spin = QSpinBox()
@@ -606,20 +607,10 @@ class WorkoutWindow(QMainWindow):
         nav_layout = QHBoxLayout()
         nav_layout.setSpacing(10)
         
-        prev_btn = QPushButton("◀ Exercice Précédent")
-        prev_btn.setObjectName("btnGreen")
-        prev_btn.clicked.connect(self.previous_exercise_clicked)
-        nav_layout.addWidget(prev_btn)
-        
         self.exercise_counter_label = QLabel()
         self.exercise_counter_label.setAlignment(Qt.AlignCenter)
         self.exercise_counter_label.setStyleSheet("font-weight: bold; font-size: 11pt;")
         nav_layout.addWidget(self.exercise_counter_label)
-        
-        next_btn = QPushButton("Exercice Suivant ▶")
-        next_btn.setObjectName("btnGreen")
-        next_btn.clicked.connect(self.next_exercise_clicked)
-        nav_layout.addWidget(next_btn)
         
         layout.addLayout(nav_layout)
         
@@ -642,13 +633,12 @@ class WorkoutWindow(QMainWindow):
     
     def add_exercise_to_list(self):
         """Add exercise from input fields"""
-        name = self.ex_name_input.text().strip()
+        name = self.ex_name_input.currentText().strip()
         reps = self.ex_reps_spin.value()
         sets = self.ex_sets_spin.value()
 
         if name:
             self.interface.add_exercise(name, reps, sets)
-            self.ex_name_input.clear()
             self.update_exercise_list()
         else:
             # Show error message
@@ -690,18 +680,6 @@ class WorkoutWindow(QMainWindow):
         self.update_timer.stop()
         self.interface.stop_workout()
         self._stop_local_rest()
-    
-    def next_exercise_clicked(self):
-        """Move to next exercise"""
-        self.interface.next_exercise()
-        self._stop_local_rest()
-        self.update_display()
-    
-    def previous_exercise_clicked(self):
-        """Move to previous exercise"""
-        self.interface.previous_exercise()
-        self._stop_local_rest()
-        self.update_display()
     
     def show_config_view(self):
         """Show configuration view"""
@@ -825,13 +803,38 @@ class WorkoutWindow(QMainWindow):
         except:
             self.interface.Rest_Time_RemainingI = None
 
-        # Stopper tout timer local si le moteur pousse une valeur
-        if self.interface.Rest_Time_RemainingI is not None:
-            self._stop_local_rest()
-            self._last_rest_item_key = None
+        # Démarre un timer local à chaque update
+        if self.interface.Rest_Time_RemainingI is not None and self.interface.Rest_Time_RemainingI > 0:
+            self._start_rest_countdown(self.interface.Rest_Time_RemainingI)
+        else:
+            self._stop_rest_countdown()
 
-        # Réafficher proprement via la logique centrale (évite les incohérences d’état)
         self.update_display()
+    
+    def _start_rest_countdown(self, seconds):
+        self._stop_rest_countdown()
+        self._rest_seconds_left = int(seconds)
+        self.rest_time_label.setText(f"{self._rest_seconds_left}s")
+        self._rest_timer = QTimer(self)
+        self._rest_timer.timeout.connect(self._tick_rest_countdown)
+        self._rest_timer.start(1000)
+
+    def _stop_rest_countdown(self):
+        if hasattr(self, '_rest_timer') and self._rest_timer.isActive():
+            self._rest_timer.stop()
+        self._rest_seconds_left = None
+
+    def _tick_rest_countdown(self):
+        if self._rest_seconds_left is None:
+            self._stop_rest_countdown()
+            return
+        self._rest_seconds_left -= 1
+        self.rest_time_label.setText(f"{self._rest_seconds_left}s")
+        if self._rest_seconds_left <= 0:
+            self._stop_rest_countdown()
+            # Envoie l'impulsion fin_timer
+            self.interface.set_Fin_TimerO()
+            
     
     def update_current_exercice_display(self, exercice_name):
         """Update current exercise display from Moteur input"""
