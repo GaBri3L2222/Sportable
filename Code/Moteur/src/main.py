@@ -100,11 +100,73 @@ def on_agent_event_callback(event, uuid, name, event_data, my_data):
 
 
 # inputs
+def Fin_Timer_input_callback(io_type, name, value_type, value, my_data):
+    try:
+        agent_object = my_data
+        assert isinstance(agent_object, Moteur)
+        # add code here if needed
+        
+        # On ne traite que si une session est en cours
+        if not agent_object.VerifyState(MoteurRUNNING):
+            print("Pas de session en cours, on ignore l'entrée fin_timer")
+            return
+
+        # Sécurité : aucun exercice en cours
+        if agent_object._Moteur__Pause_en_cours["id"] == -1:
+            print("Aucune pause en cours, on ignore l'entrée fin_timer")
+            return
+        
+        # On met à jour la pause courante comme faite
+        agent_object.SetDoneCurrentPause()
+        
+        # On passe au prochain élément
+        elem = agent_object.GoNextElement()
+        
+        if elem is None:
+            
+            # Séance terminée
+            agent_object.StopworkoutIntra()
+        
+    except:
+        print(traceback.format_exc())
+
 def Rep_Validated_input_callback(io_type, name, value_type, value, my_data):
     try:
         agent_object = my_data
         assert isinstance(agent_object, Moteur)
         # add code here if needed
+        
+        # On ne traite que si une session est en cours
+        if not agent_object.VerifyState(MoteurRUNNING):
+            print("Pas de session en cours, on ignore l'entrée rep_validated")
+            return
+
+        # Sécurité : aucun exercice en cours
+        if agent_object._Moteur__Exercice_en_cours["id"] == -1:
+            print("Aucun exercice en cours, on ignore l'entrée rep_validated")
+            return
+        
+        nb_reps_restants = agent_object.DecrementReps()
+        
+        if nb_reps_restants <= 0:
+            # Si plus de répétitions, on décrémente les séries
+            
+            nb_sets_restantes = agent_object.DecrementSets()
+            
+            if nb_sets_restantes <= 0:
+                # On met à jour l'exercice courent comme fait
+                agent_object.SetDoneCurrentExercice()
+                
+                # On passe au prochain élément
+                elem = agent_object.GoNextElement()
+                
+                if elem is None:
+                    
+                    # Séance terminée
+                    agent_object.StopworkoutIntra()
+                
+            else:
+                agent_object.ResetReps(agent_object._Moteur__Exercice_en_cours["id"])
     except:
         print(traceback.format_exc())
 
@@ -122,7 +184,8 @@ def Startworkout_callback(sender_agent_name, sender_agent_uuid, service_name, tu
     try:
         agent_object = my_data
         assert isinstance(agent_object, Moteur)
-        agent_object.Startworkout(sender_agent_name, sender_agent_uuid)
+        Displayjson = tuple_args[0]
+        agent_object.Startworkout(sender_agent_name, sender_agent_uuid, Displayjson)
     except:
         print(traceback.format_exc())
 
@@ -230,6 +293,8 @@ if __name__ == "__main__":
 
     igs.observe_agent_events(on_agent_event_callback, agent)
 
+    igs.input_create("fin_timer", igs.IMPULSION_T, None)
+    igs.observe_input("fin_timer", Fin_Timer_input_callback, agent)
     igs.input_create("rep_validated", igs.IMPULSION_T, None)
     igs.observe_input("rep_validated", Rep_Validated_input_callback, agent)
 
@@ -240,27 +305,30 @@ if __name__ == "__main__":
     igs.output_set_description("rest_time_remaining", """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">en secondes</p></body></html>""")
     igs.output_create("session_state", igs.STRING_T, None)
     igs.output_create("workout_summary", igs.STRING_T, None)
-
     igs.service_init("stopWorkout", Stopworkout_callback, agent)
     igs.service_reply_add("stopWorkout", "updateVue");
     igs.service_reply_arg_add("stopWorkout", "updateVue", "displayJSON", igs.STRING_T);
     igs.service_init("startWorkout", Startworkout_callback, agent)
+    igs.service_arg_add("startWorkout", "displayJSON", igs.STRING_T)
     igs.service_reply_add("startWorkout", "updateVue");
     igs.service_reply_arg_add("startWorkout", "updateVue", "displayJSON", igs.STRING_T);
+    
     igs.service_init("removeRecuperation", Removerecuperation_callback, agent)
     igs.service_arg_add("removeRecuperation", "recuperationID", igs.INTEGER_T)
     igs.service_reply_add("removeRecuperation", "updateVue");
-    igs.service_reply_arg_add("removeRecuperation", "updateVue", "displayJSON", igs.STRING_T);
+    igs.service_reply_arg_add("removeRecuperation", "updateVue", "isRemoved", igs.BOOL_T);
+    
     igs.service_init("addRecuperation", Addrecuperation_callback, agent)
     igs.service_reply_add("addRecuperation", "updateVue");
-    igs.service_reply_arg_add("addRecuperation", "updateVue", "displayJSON", igs.STRING_T);
+    igs.service_reply_arg_add("addRecuperation", "updateVue", "newIDPause", igs.INTEGER_T);
     igs.service_init("addExercice", Addexercice_callback, agent)
     igs.service_reply_add("addExercice", "updateVue");
-    igs.service_reply_arg_add("addExercice", "updateVue", "displayJSON", igs.STRING_T);
+    igs.service_reply_arg_add("addExercice", "updateVue", "newIDExo", igs.INTEGER_T);
+    
     igs.service_init("removeExercice", Removeexercice_callback, agent)
     igs.service_arg_add("removeExercice", "exerciceID", igs.INTEGER_T)
     igs.service_reply_add("removeExercice", "updateVue");
-    igs.service_reply_arg_add("removeExercice", "updateVue", "displayJSON", igs.STRING_T);
+    igs.service_reply_arg_add("removeExercice", "updateVue", "isRemoved", igs.BOOL_T);
 
     igs.start_with_device(device, port)
     # catch SIGINT handler after starting agent

@@ -15,9 +15,12 @@ import time
 from pathlib import Path
 import traceback
 import sys
+<<<<<<< HEAD
 import cv2
 import mediapipe as mp
 import math
+=======
+>>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
 
 from Vision import *
 
@@ -100,12 +103,18 @@ def on_agent_event_callback(event, uuid, name, event_data, my_data):
     except:
         print(traceback.format_exc())
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
 # inputs
 def Current_Exercice_input_callback(io_type, name, value_type, value, my_data):
     try:
         agent_object = my_data
         assert isinstance(agent_object, Vision)
         agent_object.Current_ExerciceI = value
+<<<<<<< HEAD
         igs.info(f"Exercice changé: {value}")
         if verbose:
             print(f"[Vision] Nouvel exercice reçu: {value}")
@@ -113,6 +122,23 @@ def Current_Exercice_input_callback(io_type, name, value_type, value, my_data):
         igs.error(f"Erreur lors du changement d'exercice: {e}")
         print(traceback.format_exc())
 
+=======
+        # add code here if needed
+    except:
+        print(traceback.format_exc())
+
+# services
+def Start_Detection_callback(sender_agent_name, sender_agent_uuid, service_name, tuple_args, token, my_data):
+    try:
+        agent_object = my_data
+        assert isinstance(agent_object, Vision)
+        Current_Exercice = tuple_args[0]
+        agent_object.Start_Detection(sender_agent_name, sender_agent_uuid, Current_Exercice)
+    except:
+        print(traceback.format_exc())
+
+
+>>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
 if __name__ == "__main__":
 
     # catch SIGINT handler before starting agent
@@ -184,13 +210,25 @@ if __name__ == "__main__":
     igs.output_create("rep_validated", igs.IMPULSION_T, None)
     igs.output_create("squelette", igs.STRING_T, None)
     igs.output_create("vision_state", igs.BOOL_T, None)
+<<<<<<< HEAD
     igs.output_create("feedback", igs.STRING_T, None)
     igs.output_set_description("vision_state", """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">arrive à détécter quelqu'un</p></body></html>""")
 
+=======
+    igs.output_set_description("vision_state", """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">arrive à détécter quelqu'un</p></body></html>""")
+
+    igs.service_init("start_detection", Start_Detection_callback, agent)
+    igs.service_arg_add("start_detection", "current_exercice", igs.STRING_T)
+    igs.service_reply_add("start_detection", "reponse");
+    igs.service_reply_arg_add("start_detection", "reponse", "rep_validated", igs.BOOL_T);
+    igs.service_reply_arg_add("start_detection", "reponse", "new_reply_argument", igs.STRING_T);
+
+>>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     igs.start_with_device(device, port)
     # catch SIGINT handler after starting agent
     signal.signal(signal.SIGINT, signal_handler)
 
+<<<<<<< HEAD
     # Initialiser la webcam et MediaPipe
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
@@ -254,4 +292,18 @@ if __name__ == "__main__":
 
     cap.release()
     cv2.destroyAllWindows()
+=======
+    if interactive_loop:
+        print_usage_help()
+        while True:
+            command = input()
+            if command == "/quit":
+                break
+            elif command == "/help":
+                print_usage_help()
+    else:
+        while (not is_interrupted) and igs.is_started():
+            time.sleep(0.1)
+
+>>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     igs.stop()
