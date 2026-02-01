@@ -201,6 +201,15 @@ def Settotaldisplay_callback(sender_agent_name, sender_agent_uuid, service_name,
         agent_object.Settotaldisplay(sender_agent_name, sender_agent_uuid, Displayjson)
     except:
         print(traceback.format_exc())
+        
+def on_exerice_added_callback(sender_agent_name, sender_agent_uuid, service_name, tuple_args, token, my_data):
+    try:
+        agent_object = my_data
+        assert isinstance(agent_object, Interface_graphique)
+        exercise_id = tuple_args[0]
+        agent_object.on_exercice_added(sender_agent_name, sender_agent_uuid, exercise_id)
+    except:
+        print(traceback.format_exc())
 
 
 def run_ingescape_thread(agent, device, port):
@@ -225,13 +234,13 @@ def run_ingescape_thread(agent, device, port):
     igs.input_set_description("session_state", """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">programation, execution de la seance</p></body></html>""")
     igs.observe_input("session_state", Session_State_input_callback, agent)
 
-<<<<<<< HEAD
-=======
     igs.output_create("fin_timer", igs.IMPULSION_T, None)
 
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     igs.service_init("setTotalDisplay", Settotaldisplay_callback, agent)
     igs.service_arg_add("setTotalDisplay", "displayJSON", igs.STRING_T)
+    
+    igs.service_init("on_exercice_added", on_exerice_added_callback, agent)
+    igs.service_arg_add("on_exercice_added", "exercise_id", igs.INTEGER_T)
 
     igs.start_with_device(device, port)
 

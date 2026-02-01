@@ -362,7 +362,8 @@ class Moteur(metaclass=Singleton):
         if(sender_agent_name == "Interface graphique" or sender_agent_name == "Ingescape Circle"):
             
             if self.VerifyState(MoteurCOMPOSING):
-            
+                
+                print(f"Suppression de la récupération d'ID {Recuperationid} demandée par {sender_agent_name}.")
                 # On retire la récupération
                 bool = self.__Planning_workout.RemovePause(Recuperationid)
                 
@@ -376,8 +377,13 @@ class Moteur(metaclass=Singleton):
             
             if self.VerifyState(MoteurCOMPOSING):
                 
+                print(f"Ajout d'une récupération demandé par {sender_agent_name}.")
                 # On ajoute la récupération
                 newIDPause = self.__Planning_workout.AddPause()
+                
+                arguments = (newIDPause,)
+                igs.service_call(sender_agent_name, "on_exercice_added", arguments, "")
+                print(f"Service on_recuperation_added appelé avec l'ID {newIDPause}")
                 
                 # On retourne le planning mis à jour
                 return newIDPause
@@ -392,6 +398,10 @@ class Moteur(metaclass=Singleton):
                 # On ajoute l'exercice 
                 newIDExo = self.__Planning_workout.AddExercice()
                 
+                arguments = (newIDExo,)
+                igs.service_call(sender_agent_name, "on_exercice_added", arguments, "")
+                print(f"Service on_exercice_added appelé avec l'ID {newIDExo}")
+                
                 # On retourne le planning mis à jour
                 return newIDExo
         else:
@@ -401,6 +411,8 @@ class Moteur(metaclass=Singleton):
         if(sender_agent_name == "Interface graphique" or sender_agent_name == "Ingescape Circle"):
             
             if self.VerifyState(MoteurCOMPOSING):
+                
+                print(f"Suppression de l'exercice d'ID {Exerciceid} demandée par {sender_agent_name}.")
                 
                 # On retire l'exercice 
                 bool = self.__Planning_workout.RemoveExercice(Exerciceid)

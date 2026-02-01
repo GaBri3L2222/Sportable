@@ -9,15 +9,12 @@
 # "no description"
 #
 import ingescape as igs
-<<<<<<< HEAD
 import cv2
 import mediapipe as mp
 import numpy as np
 import json
 from collections import deque
-import time
-=======
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
+
 
 
 class Singleton(type):
@@ -30,20 +27,16 @@ class Singleton(type):
 
 class Vision(metaclass=Singleton):
     def __init__(self):
-<<<<<<< HEAD
         self.mp_pose = mp.solutions.pose
         self.mp_drawing = mp.solutions.drawing_utils
         self.pose = self.mp_pose.Pose(static_image_mode=False, model_complexity=1, min_detection_confidence=0.5, min_tracking_confidence=0.5)
         
-=======
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
         # inputs
         self.Current_ExerciceI = None
 
         # outputs
         self._SqueletteO = None
         self._Vision_StateO = None
-<<<<<<< HEAD
         self._FeedbackO = None
         
 
@@ -58,8 +51,6 @@ class Vision(metaclass=Singleton):
         # Machine d'état pour le comptage des répétitions
         self.fsm = {}
 
-=======
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
 
     # outputs
     def set_Rep_ValidatedO(self):
@@ -74,10 +65,7 @@ class Vision(metaclass=Singleton):
         self._SqueletteO = value
         if self._SqueletteO is not None:
             igs.output_set_string("squelette", self._SqueletteO)
-<<<<<<< HEAD
     
-=======
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     @property
     def Vision_StateO(self):
         return self._Vision_StateO
@@ -87,7 +75,6 @@ class Vision(metaclass=Singleton):
         self._Vision_StateO = value
         if self._Vision_StateO is not None:
             igs.output_set_bool("vision_state", self._Vision_StateO)
-<<<<<<< HEAD
     
     @property
     def FeedbackO(self):
@@ -105,7 +92,10 @@ class Vision(metaclass=Singleton):
         b = np.array(b)
         c = np.array(c)
         
+        # Calcul de l'angle en radians avec la fonction arctan2
         radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
+        
+        # Convertir en degrés
         angle = np.abs(radians * 180.0 / np.pi)
         
         if angle > 180.0:
@@ -312,94 +302,106 @@ class Vision(metaclass=Singleton):
                 self.set_Rep_ValidatedO()
 
     def analyze_squats(self, landmarks, image):
+        # 1. Récupération des coordonnées (Côté GAUCHE)
+        shoulder = self.get_coords(landmarks, "LEFT_SHOULDER")
         hip = self.get_coords(landmarks, "LEFT_HIP")
         knee = self.get_coords(landmarks, "LEFT_KNEE")
         ankle = self.get_coords(landmarks, "LEFT_ANKLE")
-        knee_angle = self.calculate_angle(hip, knee, ankle)
-        knee_angle = self.smooth_angle('squat_knee', knee_angle)
 
-        shoulder = self.get_coords(landmarks, "LEFT_SHOULDER")
-        hip_angle = self.calculate_angle(shoulder, hip, knee)
-        hip_angle = self.smooth_angle('squat_hip', hip_angle)
+        # 2. Création des points "Virtuels" pour la verticale
+        # OpenCV : Y augmente vers le bas. Donc (x, y - 1) est vers le HAUT.
+        hip_vert_up = [hip[0], hip[1] - 1.0]      # Point vertical au-dessus des hanches
+        hip_vert_down = [hip[0], hip[1] + 1.0]    # Point vertical en-dessous des hanches
+        ankle_vert_up = [ankle[0], ankle[1] - 1.0] # Point vertical au-dessus de la cheville
 
-        # Vérification de la profondeur du squat
-        depth_check = hip[1] > (knee[1] - 0.1)
+        # 3. Calcul des Angles selon vos contraintes (en utilisant votre fonction calculate_angle)
+        
+        # --- Feedback 1 & 2 : Angle du dos (Shoulder-Hip vs Vertical) ---
+        # 0° = Dos vertical, >0° = Penché
+        back_angle = self.calculate_angle(shoulder, hip, hip_vert_up)
+        back_angle = self.smooth_angle('back_vert', back_angle)
 
-        valid_form = hip_angle > 60
+        # --- Feedback 3 & 5 : Angle des cuisses (Hip-Knee vs Vertical Bas) ---
+        # 0° = Debout (Jambe verticale), 90° = Parallèle, >90° = Profond
+        thigh_angle = self.calculate_angle(knee, hip, hip_vert_down)
+        thigh_angle = self.smooth_angle('thigh_vert', thigh_angle)
 
-        self.skeleton_color = (0, 255, 0) if valid_form and (depth_check or knee_angle < 100) else (0, 165, 255)
+        # --- Feedback 4 : Angle des tibias (Knee-Ankle vs Vertical Haut) ---
+        # 0° = Tibia vertical, >0° = Genou qui avance
+        shin_angle = self.calculate_angle(knee, ankle, ankle_vert_up)
+        shin_angle = self.smooth_angle('shin_vert', shin_angle)
+        
+        # --- Angle de flexion classique pour l'affichage Squelette (Optionnel mais utile) ---
+        raw_knee = self.calculate_angle(hip, knee, ankle)
+
+        # 4. Logique FSM (Machine à États) basée sur l'angle des cuisses (Thigh Angle)
+        # S1: Debout (<30°) | S2: Transition (30°-85°) | S3: Bas (>85°)
+        
+        prev_state = self.fsm.get('squats', {}).get('state')
+        state = prev_state or 'S1'
+
+        if state == 'S1':
+            if thigh_angle > 35: state = 'S2'
+        elif state == 'S2':
+            if thigh_angle > 85: state = 'S3'
+            elif thigh_angle < 30: state = 'S1'
+        elif state == 'S3':
+            if thigh_angle < 80: state = 'S2'
+
+        # 5. Gestion des Feedbacks (Priorité aux erreurs sévères)
+        self.feedback = "FORM OK"
+
+        # > Feedback 4 (Sévère): Genoux trop avancés (> 30°)
+        if shin_angle > 30:
+            self.feedback = "KNEE OVER TOES" # "Knee falling over toes"
+        
+        # > Feedback 5 (Sévère): Squat trop profond (> 95°)
+        # La consigne dit que c'est une "incorrect posture" si > 95
+        elif state == 'S3' and thigh_angle > 95:
+            self.feedback = "TOO DEEP"
+
+        # > Feedback 1: Dos trop vertical (< 20°)
+        elif back_angle < 20 and state != 'S1':
+            self.feedback = "BEND FORWARD" # Penchez-vous en avant
+
+        # > Feedback 2: Dos trop penché (> 45°)
+        elif back_angle > 45:
+            self.feedback = "BEND BACKWARD" # Redressez-vous
+
+        # > Feedback 3: Transition (Lower hips)
+        # S'affiche quand on est en S2 (descente) et angle entre 50 et 80
+        elif (state == 'S2' and prev_state == 'S1') and (50 < thigh_angle < 80):
+            self.feedback = "LOWER YOUR HIPS"
+        
+        # Feedback positif final
+        elif state == 'S3':
+            self.feedback = "GOOD DEPTH"
+
+        # 6. Couleurs et Affichage       
+        self.skeleton_color = (0, 255, 0) if self.feedback == "FORM OK" else (0, 0, 255)
         
         self.tracked_joints = [
-            ("LEFT_KNEE", (0, 255, 255) if knee_angle < 90 else (0, 255, 0) if knee_angle > 100 else (0, 165, 255)),
-            ("LEFT_HIP", (0, 255, 0) if hip_angle > 60 else (0, 0, 255)),
-            ("LEFT_ANKLE", (0, 165, 255)),
+            # Genou: Vert si angle cuisse OK, Rouge si trop profond
+            ("LEFT_KNEE", (0, 0, 255) if thigh_angle > 95 else (0, 255, 0)),
+            # Hanche: Vert si dos entre 20 et 45
+            ("LEFT_HIP", (0, 255, 0) if 20 <= back_angle <= 45 else (0, 0, 255)),
+            # Cheville: Rouge si tibia trop avancé
+            ("LEFT_ANKLE", (0, 0, 255) if shin_angle > 30 else (0, 165, 255))
         ]
         
-        cv2.putText(image, f"Knees: {int(knee_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
-        cv2.putText(image, f"Torso: {int(hip_angle)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if hip_angle > 60 else (0,0,255), 1)
+        # Affichage des valeurs sur l'écran
+        cv2.putText(image, f"Back: {int(back_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        cv2.putText(image, f"Thigh: {int(thigh_angle)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        cv2.putText(image, f"Shin: {int(shin_angle)}", (10, 190), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
 
-        if not valid_form:
-            self.feedback = "TORSO TOO FORWARD!"
-        elif not depth_check and knee_angle < 100:
-            self.feedback = "GO DEEPER!"
-        else:
-            self.feedback = "FORM OK"
-
-            # FSM pour les squats avec 3 états: S1 (debout), S2 (mi-squat), S3 (bas)
-            prev_state = self.fsm.get('squats', {}).get('state')
-            t = {
-                'S1_up': 32,
-                'S2_low': 35,
-                'S2_high': 65,
-                'S3_low': 75,
-                'S3_high': 95,
-            }
-            hyst = 3
-            # Déterminer l'état actuel
-            if prev_state == 'S1':
-                if knee_angle > t['S2_low'] + hyst:
-                    state = 'S2'
-                else:
-                    state = 'S1'
-            elif prev_state == 'S2':
-                if knee_angle > t['S3_low'] + hyst:
-                    state = 'S3'
-                elif knee_angle < t['S2_low'] - hyst:
-                    state = 'S1'
-                else:
-                    state = 'S2'
-            elif prev_state == 'S3':
-                if knee_angle < t['S3_low'] - hyst:
-                    state = 'S2'
-                else:
-                    state = 'S3'
-            else:
-                # Pour l'état initial
-                if knee_angle < t['S1_up']:
-                    state = 'S1'
-                elif t['S2_low'] <= knee_angle <= t['S2_high']:
-                    state = 'S2'
-                elif t['S3_low'] <= knee_angle <= t['S3_high']:
-                    state = 'S3'
-                else:
-                    state = 'S2'
-
-            # Vérification des genoux au-delà des orteils
-            try:
-                toe = landmarks[self.mp_pose.PoseLandmark.LEFT_FOOT_INDEX.value]
-                knee_lm = landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value]
-                delta = 0.02
-                knees_over_toes = knee_lm.x > toe.x + delta
-                if knees_over_toes:
-                    self.feedback = 'Knees over toes!'
-            except Exception:
-                pass
-
-            self.fsm_append_state('squats', state)
-            self.stage = state
-            if self.fsm_check_and_count('squats') and valid_form:
-                self.counter += 1
-                self.set_Rep_ValidatedO()
+        # 7. Mise à jour finale
+        self.fsm_append_state('squats', state)
+        self.stage = state
+        
+        # Comptage : S1 -> S2 -> S3 -> S2 -> S1
+        if self.fsm_check_and_count('squats'):
+            self.counter += 1
+            self.set_Rep_ValidatedO()
 
     def analyze_jumping_jacks(self, landmarks, image):
         l_shoulder = self.get_coords(landmarks, "LEFT_SHOULDER")
@@ -476,48 +478,131 @@ class Vision(metaclass=Singleton):
                 self.set_Rep_ValidatedO()
 
     def analyze_montee_genou(self, landmarks, image):
+        # 1. Récupération des coordonnées (G = Gauche, D = Droite)
         l_hip = self.get_coords(landmarks, "LEFT_HIP")
         l_knee = self.get_coords(landmarks, "LEFT_KNEE")
         r_hip = self.get_coords(landmarks, "RIGHT_HIP")
         r_knee = self.get_coords(landmarks, "RIGHT_KNEE")
-        
-        l_knee_height = l_hip[1] - l_knee[1]
-        r_knee_height = r_hip[1] - r_knee[1]
-        
         shoulder = self.get_coords(landmarks, "LEFT_SHOULDER")
-        hip = self.get_coords(landmarks, "LEFT_HIP")
-        ankle = self.get_coords(landmarks, "LEFT_ANKLE")
-        posture_angle = self.calculate_angle(shoulder, hip, ankle)
+
+        # 2. Points virtuels pour la verticale (Y augmente vers le bas)
+        hip_vert_down_l = [l_hip[0], l_hip[1] + 1.0] # Pour angle cuisse G
+        hip_vert_down_r = [r_hip[0], r_hip[1] + 1.0] # Pour angle cuisse D
+        hip_vert_up = [l_hip[0], l_hip[1] - 1.0]     # Pour angle dos
+
+        # 3. Calcul des Angles (0° = Debout/Vertical, 90° = Horizontal)
         
-        valid_form = posture_angle > 160
-        knee_is_high = l_knee_height > 0.15 or r_knee_height > 0.15
+        # Angle Cuisse Gauche
+        l_thigh_angle = self.calculate_angle(l_knee, l_hip, hip_vert_down_l)
+        l_thigh_angle = self.smooth_angle('mk_l_thigh', l_thigh_angle)
         
-        self.skeleton_color = (0, 255, 0) if valid_form and knee_is_high else (0, 165, 255)
+        # Angle Cuisse Droite
+        r_thigh_angle = self.calculate_angle(r_knee, r_hip, hip_vert_down_r)
+        r_thigh_angle = self.smooth_angle('mk_r_thigh', r_thigh_angle)
+
+        # Angle du Dos (Posture)
+        back_angle = self.calculate_angle(shoulder, l_hip, hip_vert_up)
+        back_angle = self.smooth_angle('mk_back', back_angle)
+
+        # 4. Vérification Posture (Dos droit)
+        # On tolère jusqu'à 25° de penchement arrière/avant
+        valid_form = back_angle < 25
         
-        self.tracked_joints = [
-            ("LEFT_KNEE", (0, 255, 255) if l_knee_height > 0.15 else (0, 165, 255)),
-            ("RIGHT_KNEE", (0, 255, 255) if r_knee_height > 0.15 else (0, 165, 255)),
-            ("LEFT_HIP", (0, 255, 0) if valid_form else (0, 0, 255)),
-        ]
+        # 5. Machine à États (Alternance Gauche -> Droite)
         
-        cv2.putText(image, f"Knee L: {int(l_knee_height * 100)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
-        cv2.putText(image, f"Knee R: {int(r_knee_height * 100)}", (10, 170), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
-        cv2.putText(image, f"Posture: {int(posture_angle)}", (10, 190), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0) if valid_form else (0,0,255), 1)
+        # Récupération de l'état précédent ('WAIT_L', 'WAIT_R', ou 'IDLE')
+        # 'seq' nous servira à savoir quelle jambe a été validée en dernier
+        entry = self.fsm.setdefault('montee_genou', {'state': 'IDLE', 'last_leg': None})
+        state = entry['state']
         
-        if not valid_form:
-            self.feedback = "KEEP BACK STRAIGHT!"
-        elif not knee_is_high:
-            self.feedback = "RAISE YOUR KNEES!"
-        else:
-            self.feedback = "PERFECT!"
-            if (l_knee_height > 0.15 or r_knee_height > 0.15) and valid_form:
-                if self.stage == "down":
-                    self.stage = "up"
-            elif l_knee_height < 0.05 and r_knee_height < 0.05 and self.stage == "up":
-                self.stage = "down"
+        # Seuils
+        UP_THRESH = 75  # La cuisse doit monter haut (>75°)
+        DOWN_THRESH = 30 # La jambe doit redescendre (<30°) pour valider le cycle
+
+        # Détection de quelle jambe est levée "maintenant"
+        current_lift = None
+        if l_thigh_angle > UP_THRESH:
+            current_lift = 'LEFT'
+        elif r_thigh_angle > UP_THRESH:
+            current_lift = 'RIGHT'
+        
+        # Logique FSM
+        # Etat initial ou Reset
+        if state == 'IDLE':
+            self.feedback = "START LEFT OR RIGHT"
+            if current_lift == 'LEFT':
+                entry['state'] = 'L_UP'
+                entry['last_leg'] = 'LEFT'
+            elif current_lift == 'RIGHT':
+                entry['state'] = 'R_UP'
+                entry['last_leg'] = 'RIGHT'
+        
+        # Si on est en train de lever la GAUCHE
+        elif state == 'L_UP':
+            self.feedback = "GOOD LEFT!"
+            # On attend que ça redescende
+            if l_thigh_angle < DOWN_THRESH:
+                entry['state'] = 'WAIT_R' # Maintenant on veut la droite !
+        
+        # Si on est en train de lever la DROITE
+        elif state == 'R_UP':
+            self.feedback = "GOOD RIGHT!"
+            # On attend que ça redescende
+            if r_thigh_angle < DOWN_THRESH:
+                entry['state'] = 'WAIT_L' # Maintenant on veut la gauche !
+
+        # On attend la jambe DROITE
+        elif state == 'WAIT_R':
+            self.feedback = "NOW RIGHT !"
+            if current_lift == 'RIGHT':
+                entry['state'] = 'R_UP'
+                entry['last_leg'] = 'RIGHT'
+                # C'est ici qu'on valide une "demi-rep" ou la fin d'un cycle
+                # Si vous comptez 1 rep = G + D, on incrémente ici si on a commencé par G
+            elif current_lift == 'LEFT':
+                self.feedback = "NO! USE RIGHT LEG"
+        
+        # On attend la jambe GAUCHE
+        elif state == 'WAIT_L':
+            self.feedback = "NOW LEFT !"
+            if current_lift == 'LEFT':
+                entry['state'] = 'L_UP'
+                entry['last_leg'] = 'LEFT'
+                # Cycle complet G -> D -> G (début nouveau cycle) ou D -> G
                 self.counter += 1
                 self.set_Rep_ValidatedO()
+            elif current_lift == 'RIGHT':
+                self.feedback = "NO! USE LEFT LEG"
 
+        # 6. Feedback Posture prioritaire
+        if not valid_form:
+            self.feedback = "STRAIGHTEN BACK!"
+            
+        # 7. Couleurs et Affichage
+        self.skeleton_color = (0, 255, 0) if valid_form else (0, 0, 255)
+        
+        # Tracking visuel
+        self.tracked_joints = [
+            ("LEFT_KNEE", (0, 255, 255) if l_thigh_angle > UP_THRESH else (0, 165, 255)),
+            ("RIGHT_KNEE", (0, 255, 255) if r_thigh_angle > UP_THRESH else (0, 165, 255)),
+            ("LEFT_HIP", (0, 255, 0) if valid_form else (0, 0, 255))
+        ]
+        
+        # Affichage Texte sur l'image
+        h, w, _ = image.shape
+        # Afficher L ou R à côté des genoux
+        cx_l, cy_l = int(l_knee[0]*w), int(l_knee[1]*h)
+        cx_r, cy_r = int(r_knee[0]*w), int(r_knee[1]*h)
+        
+        cv2.putText(image, f"L: {int(l_thigh_angle)}", (cx_l + 10, cy_l), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+        cv2.putText(image, f"R: {int(r_thigh_angle)}", (cx_r - 60, cy_r), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+        
+        # Dashboard
+        cv2.putText(image, f"Back: {int(back_angle)}", (10, 150), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+        
+        # Mise à jour globale
+        self.stage = entry['state']
+    
     def process_frame(self, image, landmarks, exercise_name):
         self.feedback = "WAITING..."
         self.tracked_joints = []
@@ -568,12 +653,3 @@ class Vision(metaclass=Singleton):
                     cv2.circle(image, (x, y), 10, (0, 0, 0), 2)
                 except:
                     pass
-=======
-
-    # services
-    def Start_Detection(self, sender_agent_name, sender_agent_uuid, Current_Exercice):
-        pass
-        # add code here if needed
-
-
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff

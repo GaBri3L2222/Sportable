@@ -9,17 +9,10 @@
 # "no description"
 #
 import ingescape as igs
-<<<<<<< HEAD
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QLabel, QSpinBox, QLineEdit, QListWidget, 
                              QListWidgetItem, QStackedWidget, QFormLayout, QDialog,
-                             QComboBox, QFrame, QScrollArea)
-=======
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                             QPushButton, QLabel, QSpinBox, QLineEdit, QListWidget, 
-                             QListWidgetItem, QStackedWidget, QFormLayout, QDialog,
                              QComboBox, QFrame, QScrollArea, QGroupBox)
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QObject, QPointF
 from PyQt5.QtGui import QFont, QPixmap, QColor, QIcon, QPainter, QPen, QBrush
 from PyQt5.QtWidgets import QApplication
@@ -251,29 +244,15 @@ class Interface_graphique(metaclass=Singleton):
             self.signal_bridge.update_rest_time.connect(self.window.update_rest_time)
         if hasattr(self.signal_bridge, 'update_current_exercice'):
             self.signal_bridge.update_current_exercice.connect(self.window.update_current_exercice_display)
-<<<<<<< HEAD
-
-    def add_exercise(self, exercise_name, reps, sets):
-        """Add exercise to the list"""
-        self.exercises.append({
-            "name": exercise_name,
-            "reps": reps,
-            "sets": sets
-        })
-        if self.window:
-            self.window.update_exercise_list()
-
-    def remove_exercise(self, index):
-        """Remove exercise from the list"""
-        if 0 <= index < len(self.exercises):
-            self.exercises.pop(index)
-            if self.window:
-                self.window.update_exercise_list()
-=======
+            
+    def on_exercice_added(self, sender_agent_name, sender_agent_uuid, exercise_id):
+        """Service callback when an exercise is added in Moteur"""
+        print(f"Received exercice added with ID: {exercise_id}")
+        self.exercises[-1]["id"] = exercise_id
+    
     
     def add_exercise(self, exercise_name, reps, sets):
         result = igs.service_call("Moteur", "addExercice", (), "")
-        id = result[0] if result and len(result) > 0 else None
         print(f"Exercise ID: {id}")
         """Add exercise to the list"""
         self.exercises.append({
@@ -281,7 +260,7 @@ class Interface_graphique(metaclass=Singleton):
             "nom": exercise_name,
             "series": sets,
             "repetitions": reps,
-            "id": id,
+            "id": result,
             "done": "false"
         })
         if self.window:
@@ -294,46 +273,35 @@ class Interface_graphique(metaclass=Singleton):
             if 0 <= index < len(self.exercises):
                 item = self.exercises.pop(index)
                 try:
+                    elem_id = item.get("id")
+                    print(f"Removing element with ID: {elem_id}")
                     if item.get("type") == "pause":
-                        igs.service_call("Moteur", "removeRecuperation", item.get("id"),"")
+                        igs.service_call("Moteur", "removeRecuperation", elem_id,"")
                     else:
-                        igs.service_call("Moteur", "removeExercice", item.get("id"),"")
+                        igs.service_call("Moteur", "removeExercice", elem_id,"")
                 except:
                     pass
                 if self.window:
                     self.window.update_exercise_list()
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
 
     def start_workout(self):
         """Start the workout session"""
         if len(self.exercises) > 0:
             self.current_exercise_index = 0
-<<<<<<< HEAD
-            try:
-                igs.service_call("Moteur", "startWorkout")
-=======
             js = {'nom':'Séance', 'elements': self.exercises }
             try:
                 igs.service_call("Moteur", "startWorkout",json.dumps(js),"")
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
             except:
                 pass  # Service might not be available yet
             if self.window:
                 self.window.show_execution_view()
-<<<<<<< HEAD
-=======
                 
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
 
     def stop_workout(self):
         """Stop the workout session"""
         try:
-<<<<<<< HEAD
-            igs.service_call("Moteur", "stopWorkout")
-=======
             js = igs.service_call("Moteur", "stopWorkout",None,"")
             self.exercises = js.elements
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
         except:
             pass  # Service might not be available yet
         if self.window:
@@ -352,21 +320,16 @@ class Interface_graphique(metaclass=Singleton):
             self.current_exercise_index -= 1
             if self.window:
                 self.window.update_display()
-<<<<<<< HEAD
-
-=======
                 
     def add_rest(self, duration_seconds: int):
             try:
                 result = igs.service_call("Moteur", "addRecuperation", None, "")
-                rest_id = result[0] if result and len(result) > 0 else None
             except:
                 rest_id = None
             self.exercises.append({
                 "type": "pause",
-                "nom": "Repos",
-                "duree": int(duration_seconds),
-                "id": rest_id,
+                "duree_secondes": int(duration_seconds),
+                "id": result,
                 "done": "false"
             })
             if self.window:
@@ -376,7 +339,6 @@ class Interface_graphique(metaclass=Singleton):
     def set_Fin_TimerO(self):
         igs.output_set_impulsion("fin_timer")
         
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     # services
     def Settotaldisplay(self, sender_agent_name, sender_agent_uuid, Displayjson):
         """Service to receive and display JSON data"""
@@ -417,77 +379,6 @@ class WorkoutWindow(QMainWindow):
         # Show config view by default
         self.show_config_view()
         
-<<<<<<< HEAD
-    def create_config_view(self):
-        """Create the configuration/setup view"""
-        widget = QWidget()
-        layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
-        
-        # Title
-        title = QLabel("Configuration - Ajouter des Exercices")
-        title.setObjectName("title")
-        layout.addWidget(title)
-        
-        # Exercise form
-        form_layout = QFormLayout()
-        form_layout.setSpacing(10)
-        
-        self.exercise_name_input = QLineEdit()
-        self.exercise_name_input.setPlaceholderText("Nom de l'exercice")
-        form_layout.addRow("Exercice:", self.exercise_name_input)
-        
-        self.reps_spinbox = QSpinBox()
-        self.reps_spinbox.setMinimum(1)
-        self.reps_spinbox.setMaximum(100)
-        self.reps_spinbox.setValue(10)
-        form_layout.addRow("Répétitions:", self.reps_spinbox)
-        
-        self.sets_spinbox = QSpinBox()
-        self.sets_spinbox.setMinimum(1)
-        self.sets_spinbox.setMaximum(20)
-        self.sets_spinbox.setValue(3)
-        form_layout.addRow("Séries:", self.sets_spinbox)
-        
-        layout.addLayout(form_layout)
-        
-        # Add exercise button
-        add_btn = QPushButton("Ajouter l'exercice")
-        add_btn.setObjectName("btnGreen")
-        add_btn.clicked.connect(self.add_exercise_to_list)
-        layout.addWidget(add_btn)
-        
-        # Separator
-        sep = QFrame()
-        sep.setObjectName("separator")
-        sep.setFixedHeight(1)
-        layout.addWidget(sep)
-        
-        # Exercise list
-        list_label = QLabel("Exercices configurés:")
-        list_label.setObjectName("title")
-        layout.addWidget(list_label)
-        
-        self.exercise_list = QListWidget()
-        layout.addWidget(self.exercise_list)
-        
-        # Delete button for selected exercise
-        delete_btn = QPushButton("Supprimer l'exercice sélectionné")
-        delete_btn.setObjectName("btnGreen")
-        delete_btn.clicked.connect(self.delete_selected_exercise)
-        layout.addWidget(delete_btn)
-        
-        # Start workout button
-        start_btn = QPushButton("Démarrer l'entraînement")
-        start_btn.setObjectName("btnRed")
-        start_btn.clicked.connect(self.start_workout_clicked)
-        layout.addWidget(start_btn)
-        
-        layout.addStretch()
-        widget.setLayout(layout)
-        return widget
-=======
         
         # Local rest timer
         self.local_rest_seconds = None
@@ -497,8 +388,7 @@ class WorkoutWindow(QMainWindow):
         
         # Dans WorkoutWindow.__init__ après la config des timers
         self._last_rest_item_key = None
-        
-   
+
     def create_config_view(self):
             """Create the configuration/setup view"""
             widget = QWidget()
@@ -592,7 +482,6 @@ class WorkoutWindow(QMainWindow):
             widget.setLayout(layout)
             return widget
 
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     
     def create_execution_view(self):
         """Create the execution/workout view"""
@@ -743,17 +632,6 @@ class WorkoutWindow(QMainWindow):
         widget.setLayout(layout)
         return widget
     
-<<<<<<< HEAD
-    def add_exercise_to_list(self):
-        """Add exercise from input fields"""
-        name = self.exercise_name_input.text().strip()
-        reps = self.reps_spinbox.value()
-        sets = self.sets_spinbox.value()
-        
-        if name:
-            self.interface.add_exercise(name, reps, sets)
-            self.exercise_name_input.clear()
-=======
     
     def add_rest_to_list(self):
             """Add a rest (pause) from input fields"""
@@ -771,7 +649,6 @@ class WorkoutWindow(QMainWindow):
         if name:
             self.interface.add_exercise(name, reps, sets)
             self.ex_name_input.clear()
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
             self.update_exercise_list()
         else:
             # Show error message
@@ -783,14 +660,6 @@ class WorkoutWindow(QMainWindow):
         if current_row >= 0:
             self.interface.remove_exercise(current_row)
     
-<<<<<<< HEAD
-    def update_exercise_list(self):
-        """Update the exercise list display"""
-        self.exercise_list.clear()
-        for i, exercise in enumerate(self.interface.exercises):
-            item_text = f"{exercise['name']} - {exercise['reps']} reps x {exercise['sets']} séries"
-            self.exercise_list.addItem(item_text)
-=======
     
     def update_exercise_list(self):
             """Update the list display (exercices + pauses)"""
@@ -803,48 +672,35 @@ class WorkoutWindow(QMainWindow):
                     sets = item.get("series", 0)
                     text = f" {nom} — {reps} reps x {sets} séries"
                 elif t == "pause":
-                    duree = item.get("duree", 0)
-                    text = f"Repos — {duree} s"
+                    duree_secondes = item.get("duree_secondes", 0)
+                    text = f"Repos — {duree_secondes} s"
                 else:
                     text = str(item)
                 self.exercise_list.addItem(text)
 
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     
     def start_workout_clicked(self):
         """Start the workout"""
         self.interface.start_workout()
         self.update_timer.start(500)  # Update every 500ms
-<<<<<<< HEAD
-=======
         self._stop_local_rest()
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     
     def stop_workout_clicked(self):
         """Stop the workout"""
         self.update_timer.stop()
         self.interface.stop_workout()
-<<<<<<< HEAD
-=======
         self._stop_local_rest()
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     
     def next_exercise_clicked(self):
         """Move to next exercise"""
         self.interface.next_exercise()
-<<<<<<< HEAD
-=======
         self._stop_local_rest()
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
         self.update_display()
     
     def previous_exercise_clicked(self):
         """Move to previous exercise"""
         self.interface.previous_exercise()
-<<<<<<< HEAD
-=======
         self._stop_local_rest()
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
         self.update_display()
     
     def show_config_view(self):
@@ -857,27 +713,6 @@ class WorkoutWindow(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.execution_view)
         self.update_display()
     
-<<<<<<< HEAD
-    def update_display(self):
-        """Update the execution view display"""
-        if self.interface.Session_StateI == "execution" and len(self.interface.exercises) > 0:
-            current_index = self.interface.current_exercise_index
-            if 0 <= current_index < len(self.interface.exercises):
-                exercise = self.interface.exercises[current_index]
-                
-                # Update current exercise label
-                self.current_exercise_label.setText(f"Exercice actuel: {exercise['name']}")
-                
-                # Update progress
-                self.reps_remaining_label.setText(str(self.interface.Rep_RemainingI or 0))
-                self.sets_remaining_label.setText(str(self.interface.Set_RemainingI or 0))
-                self.rest_time_label.setText(f"{self.interface.Rest_Time_RemainingI or 0}s")
-                
-                # Update exercise counter
-                self.exercise_counter_label.setText(
-                    f"Exercice {current_index + 1} / {len(self.interface.exercises)}"
-                )
-=======
     
     def update_display(self):
         """Met à jour la vue d'exécution : nom, reps/séries, temps de repos, compteur.
@@ -899,8 +734,8 @@ class WorkoutWindow(QMainWindow):
 
         # 2) Titre et affichage reps/séries selon le type
         if t == "pause":
-            duree = exercise.get("duree", 0)
-            self.current_exercise_label.setText(f"Pause : {duree} s")
+            duree_secondes = exercise.get("duree_secondes", 0)
+            self.current_exercise_label.setText(f"Pause : {duree_secondes} s")
             self.reps_remaining_label.setText("—")
             self.sets_remaining_label.setText("—")
         else:
@@ -930,12 +765,12 @@ class WorkoutWindow(QMainWindow):
             if t == "pause":
                 # On fabrique une clé unique pour cette pause (index + durée)
                 # Cela évite de relancer le timer à chaque update (500 ms)
-                current_key = (current_index, exercise.get("duree", 0))
+                current_key = (current_index, exercise.get("duree_secondes", 0))
 
                 # Si on change de pause ou de durée, on relance
                 if self._last_rest_item_key != current_key:
                     self._last_rest_item_key = current_key
-                    self._start_local_rest(exercise.get("duree", 0))
+                    self._start_local_rest(exercise.get("duree_secondes", 0))
                 else:
                     pass
             else:
@@ -948,7 +783,6 @@ class WorkoutWindow(QMainWindow):
             f"Élément {current_index + 1} / {len(self.interface.exercises)}"
         )
 
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
     
     def update_squelette_display(self, squelette_data):
         """Update skeleton/squelette display"""
@@ -984,14 +818,6 @@ class WorkoutWindow(QMainWindow):
         self.sets_remaining_label.setText(str(value or 0))
     
     def update_rest_time(self, value):
-<<<<<<< HEAD
-        """Update rest time display"""
-        self.rest_time_label.setText(f"{value or 0}s")
-    
-    def update_current_exercice_display(self, exercice_name):
-        """Update current exercise display from Moteur input"""
-        self.current_exercise_label.setText(f"Exercice actuel: {exercice_name}")
-=======
         """Slot appelé par le SignalBridge: le moteur pousse une valeur de repos restante."""
         # On synchronise l'état côté interface pour que update_display() détecte la priorité moteur
         try:
@@ -1035,4 +861,3 @@ class WorkoutWindow(QMainWindow):
     def _render_local_rest(self):
         val = self.local_rest_seconds if self.local_rest_seconds is not None else 0
         self.rest_time_label.setText(f"{val}s")
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
