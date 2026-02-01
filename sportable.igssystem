@@ -502,6 +502,10 @@
                 "definition": {
                     "inputs": [
                         {
+                            "name": "fin_timer",
+                            "type": "IMPULSION"
+                        },
+                        {
                             "name": "rep_validated",
                             "type": "IMPULSION"
                         }
@@ -549,6 +553,12 @@
                             ]
                         },
                         {
+                            "arguments": [
+                                {
+                                    "name": "displayJSON",
+                                    "type": "STRING"
+                                }
+                            ],
                             "name": "startWorkout",
                             "replies": [
                                 {
@@ -574,8 +584,8 @@
                                 {
                                     "arguments": [
                                         {
-                                            "name": "displayJSON",
-                                            "type": "STRING"
+                                            "name": "isRemoved",
+                                            "type": "BOOL"
                                         }
                                     ],
                                     "name": "updateVue"
@@ -588,8 +598,8 @@
                                 {
                                     "arguments": [
                                         {
-                                            "name": "displayJSON",
-                                            "type": "STRING"
+                                            "name": "newIDPause",
+                                            "type": "INTEGER"
                                         }
                                     ],
                                     "name": "updateVue"
@@ -602,8 +612,8 @@
                                 {
                                     "arguments": [
                                         {
-                                            "name": "displayJSON",
-                                            "type": "STRING"
+                                            "name": "newIDExo",
+                                            "type": "INTEGER"
                                         }
                                     ],
                                     "name": "updateVue"
@@ -622,8 +632,8 @@
                                 {
                                     "arguments": [
                                         {
-                                            "name": "displayJSON",
-                                            "type": "STRING"
+                                            "name": "isRemoved",
+                                            "type": "BOOL"
                                         }
                                     ],
                                     "name": "updateVue"
@@ -662,32 +672,10 @@
                             "description": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">arrive à détécter quelqu'un</p></body></html>",
                             "name": "vision_state",
                             "type": "BOOL"
-                        }
-                    ],
-                    "services": [
+                        },
                         {
-                            "arguments": [
-                                {
-                                    "name": "current_exercice",
-                                    "type": "STRING"
-                                }
-                            ],
-                            "name": "start_detection",
-                            "replies": [
-                                {
-                                    "arguments": [
-                                        {
-                                            "name": "rep_validated",
-                                            "type": "BOOL"
-                                        },
-                                        {
-                                            "name": "new_reply_argument",
-                                            "type": "STRING"
-                                        }
-                                    ],
-                                    "name": "reponse"
-                                }
-                            ]
+                            "name": "feedback",
+                            "type": "STRING"
                         }
                     ]
                 },
@@ -731,6 +719,16 @@
                             "description": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">programation, execution de la seance</p></body></html>",
                             "name": "session_state",
                             "type": "STRING"
+                        },
+                        {
+                            "name": "feedback",
+                            "type": "STRING"
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "fin_timer",
+                            "type": "IMPULSION"
                         }
                     ],
                     "services": [
@@ -742,6 +740,15 @@
                                 }
                             ],
                             "name": "setTotalDisplay"
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "name": "exercise_id",
+                                    "type": "INTEGER"
+                                }
+                            ],
+                            "name": "on_exercice_added"
                         }
                     ]
                 },
@@ -789,6 +796,23 @@
                 },
                 {
                     "agent": {
+                        "instances": [
+                            {
+                                "commandLine": "C:\\Users\\benja\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\python.exe main.py --verbose --port 5670 --device Wi-Fi --name Moteur",
+                                "hostname": "Schlogel",
+                                "ip": "172.22.220.131",
+                                "isAttachedToCircle": false,
+                                "uuid": "fb46ce05-7e28-4b5f-8e9c-f83808761e75"
+                            },
+                            {
+                                "commandLine": "C:\\Users\\benja\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\python.exe main.py --verbose --port 5670 --device Wi-Fi --name Moteur",
+                                "hostname": "Schlogel",
+                                "ip": "192.168.1.197",
+                                "isAttachedToCircle": false,
+                                "mac": "78:2B:46:44:98:05",
+                                "uuid": "f022508e-2331-42a2-8e79-0fff52608d32"
+                            }
+                        ]
                     },
                     "class": "9ccdfccb-d2df-47e7-96bf-27bf645c490c",
                     "height": 282.66212652102314,
@@ -798,23 +822,43 @@
                     "width": 349,
                     "x": -501.8779783390312,
                     "y": 423.3061453240696,
-                    "z": 0.5800000000000003
+                    "z": 2.5599999999999894
                 },
                 {
                     "agent": {
+                        "instances": [
+                            {
+                                "commandLine": "C:\\Users\\benja\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\python.exe main.py --verbose --port 5670 --device Wi-Fi --name Vision",
+                                "hostname": "Schlogel",
+                                "ip": "192.168.1.197",
+                                "isAttachedToCircle": false,
+                                "mac": "78:2B:46:44:98:05",
+                                "uuid": "a0acea26-55b1-418f-9335-1c5ff453cc33"
+                            }
+                        ]
                     },
                     "class": "2d89810b-debc-4d31-af0a-c44e601cb289",
-                    "height": 144,
+                    "height": 166,
                     "name": "Vision",
                     "simulationTime": 5000,
                     "uuid": "d7ec22c9-299b-498b-b799-add591b515bd",
                     "width": 250,
                     "x": -245.29734857999858,
                     "y": -62.445051435338655,
-                    "z": 0.7200000000000004
+                    "z": 2.6899999999999866
                 },
                 {
                     "agent": {
+                        "instances": [
+                            {
+                                "commandLine": "C:\\Users\\benja\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\python.exe main.py --verbose --port 5670 --device Wi-Fi --name Interface graphique",
+                                "hostname": "Schlogel",
+                                "ip": "192.168.1.197",
+                                "isAttachedToCircle": false,
+                                "mac": "78:2B:46:44:98:05",
+                                "uuid": "39472126-bd92-4c1e-9923-01da76543b3e"
+                            }
+                        ]
                     },
                     "class": "d94ef2f6-b458-47e7-9a17-b82d17109878",
                     "height": 254,
@@ -822,9 +866,266 @@
                     "simulationTime": 5000,
                     "uuid": "78b3b649-c7d5-4a7a-8100-942405c71ba3",
                     "width": 250,
-                    "x": 381.3618297242185,
-                    "y": 163.95864964856722,
-                    "z": 0.7300000000000004
+                    "x": 315.5389677710484,
+                    "y": 12.84419192509236,
+                    "z": 2.679999999999987
+                },
+                {
+                    "data": {
+                        "argumentValues": [
+                        ],
+                        "selectedAgentUuid": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "selectedService": "addExercice"
+                    },
+                    "height": 64,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.servicecaller",
+                    "uuid": "96913ec9-16f1-46c9-8bdc-4a141d6d4e4e",
+                    "width": 350,
+                    "x": -1040.4245543945021,
+                    "y": 773.6557216763722,
+                    "z": 2.6099999999999883
+                },
+                {
+                    "data": {
+                        "argumentValues": [
+                        ],
+                        "selectedAgentUuid": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "selectedService": "addRecuperation"
+                    },
+                    "height": 64,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.servicecaller",
+                    "uuid": "c535a009-6f6d-47f9-9e66-fa7eecdb089b",
+                    "width": 350,
+                    "x": -1039.4961495932052,
+                    "y": 855.9785601495548,
+                    "z": 2.5999999999999885
+                },
+                {
+                    "data": {
+                        "argumentValues": [
+                            {
+                                "name": "recuperationID",
+                                "value": "5"
+                            }
+                        ],
+                        "selectedAgentUuid": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "selectedService": "removeRecuperation"
+                    },
+                    "height": 96,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.servicecaller",
+                    "uuid": "37364726-2d9b-4518-a89d-3cac0b6e861b",
+                    "width": 350,
+                    "x": -1044.8361451544768,
+                    "y": 1070.913381490723,
+                    "z": 2.669999999999987
+                },
+                {
+                    "data": {
+                        "argumentValues": [
+                            {
+                                "name": "exerciceID",
+                                "value": null,
+                                "valueIsImplicit": true
+                            }
+                        ],
+                        "selectedAgentUuid": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "selectedService": "removeExercice"
+                    },
+                    "height": 96,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.servicecaller",
+                    "uuid": "f13aeaa0-0169-4c60-a92f-8bd34289254f",
+                    "width": 350,
+                    "x": -1044.8361451544765,
+                    "y": 949.4284824718015,
+                    "z": 1.8800000000000014
+                },
+                {
+                    "data": {
+                        "argumentValues": [
+                            {
+                                "name": "displayJSON",
+                                "value": "{\n  \"nom\": \"Séance\",\n  \"elements\": [\n    {\n      \"type\": \"exercice\",\n      \"nom\": \"Squats\",\n      \"series\": 2,\n      \"repetitions\": 10,\n      \"id\": 1,\n      \"done\": false\n    },\n    {\n      \"type\": \"exercice\",\n      \"nom\": \"Pompes\",\n      \"series\": 1,\n      \"repetitions\": 20,\n      \"id\": 2,\n      \"done\": false\n    },\n    {\n      \"type\": \"pause\",\n      \"duree_secondes\": 30,\n      \"id\": 3,\n      \"done\": false\n    },\n    {\n      \"type\": \"exercice\",\n      \"nom\": \"Crunchs\",\n      \"series\": 5,\n      \"repetitions\": 10,\n      \"id\": 4,\n      \"done\": false\n    },\n    {\n      \"type\": \"pause\",\n      \"duree_secondes\": 120,\n      \"id\": 5,\n      \"done\": false\n    },\n    {\n      \"type\": \"exercice\",\n      \"nom\": \"Squats\",\n      \"series\": 2,\n      \"repetitions\": 15,\n      \"id\": 6,\n      \"done\": false\n    }\n  ]\n}"
+                            }
+                        ],
+                        "selectedAgentUuid": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "selectedService": "startWorkout"
+                    },
+                    "height": 136,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.servicecaller",
+                    "uuid": "127a6cd3-d868-4439-af22-44bf739ee0be",
+                    "width": 350,
+                    "x": -474.1508195214167,
+                    "y": 864.4157531363634,
+                    "z": 2.619999999999988
+                },
+                {
+                    "data": {
+                        "argumentValues": [
+                        ],
+                        "selectedAgentUuid": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "selectedService": "stopWorkout"
+                    },
+                    "height": 64,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.servicecaller",
+                    "uuid": "8fcbe115-83fc-4cde-beee-d456b8ddd148",
+                    "width": 350,
+                    "x": -478.9568155265606,
+                    "y": 1031.0236146480268,
+                    "z": 2.6499999999999875
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "fd049384-94a4-4e3f-841b-42196c8ab9ff",
+                    "width": 250,
+                    "x": 102.39970290034512,
+                    "y": 894.5787817519353,
+                    "z": 2.06
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "df556531-f9f1-4bbb-8e01-bdf8e1815be8",
+                    "width": 250,
+                    "x": 98.56370442492562,
+                    "y": 1001.5336079899334,
+                    "z": 1.9400000000000015
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "20ded242-49fc-451b-b4d7-f6626b1bc9c3",
+                    "width": 250,
+                    "x": 99.38611888265768,
+                    "y": 1103.745522197013,
+                    "z": 2.07
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "1ab908fd-ac31-4213-9da7-3e53786487f7",
+                    "width": 250,
+                    "x": 101.78853618703101,
+                    "y": 1205.135021946361,
+                    "z": 2.0799999999999996
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 75,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "99fdaa94-94d9-4620-b1fd-815ac19b7f6f",
+                    "width": 250,
+                    "x": 104.57119943135581,
+                    "y": 1301.9083583114416,
+                    "z": 1.9700000000000015
+                },
+                {
+                    "data": {
+                        "data_decoder": "BINARY",
+                        "mostRecentFirst": true,
+                        "msg_type": "",
+                        "proto_file_path": "",
+                        "showTimestamps": true,
+                        "string_decoder": "PLAIN_TEXT"
+                    },
+                    "height": 232.21479507315797,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.observer",
+                    "uuid": "9ece4523-488b-4354-8200-fe1f0a1d06cd",
+                    "width": 511.6054439405257,
+                    "x": 102.44965217782647,
+                    "y": 1391.648039279732,
+                    "z": 2.6599999999999873
+                },
+                {
+                    "data": {
+                        "value_type": "IMPULSION"
+                    },
+                    "height": 60,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.writer",
+                    "uuid": "208a5795-9dd2-4954-b2a4-afca6fc2f90b",
+                    "width": 250,
+                    "x": -1170.8610848637995,
+                    "y": 622.8400003586755,
+                    "z": 2.7499999999999853
+                },
+                {
+                    "data": {
+                        "value_type": "IMPULSION"
+                    },
+                    "height": 60,
+                    "isExpanded": true,
+                    "name": "",
+                    "tool": "com.ingescape.circle.tool.writer",
+                    "uuid": "03f49eef-78a9-4104-98be-5ee05294bf83",
+                    "width": 250,
+                    "x": -1170.5238143454794,
+                    "y": 533.8005835222623,
+                    "z": 2.7399999999999856
                 }
             ],
             "links": {
@@ -918,6 +1219,110 @@
                         "fromInput": "chatMessage",
                         "to": "Moteur",
                         "toOutput": "current_exercice"
+                    },
+                    {
+                        "from": "Moteur",
+                        "fromInput": "fin_timer",
+                        "to": "Interface graphique",
+                        "toOutput": "fin_timer"
+                    }
+                ],
+                "others": [
+                    {
+                        "destination": "fd049384-94a4-4e3f-841b-42196c8ab9ff",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "sourceIO": {
+                            "name": "current_exercice",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "df556531-f9f1-4bbb-8e01-bdf8e1815be8",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "sourceIO": {
+                            "name": "rep_remaining",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "20ded242-49fc-451b-b4d7-f6626b1bc9c3",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "sourceIO": {
+                            "name": "set_remaining",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "1ab908fd-ac31-4213-9da7-3e53786487f7",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "sourceIO": {
+                            "name": "rest_time_remaining",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "99fdaa94-94d9-4620-b1fd-815ac19b7f6f",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "sourceIO": {
+                            "name": "session_state",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "9ece4523-488b-4354-8200-fe1f0a1d06cd",
+                        "destinationIO": {
+                            "name": "wildcard",
+                            "type": "INPUT"
+                        },
+                        "source": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "sourceIO": {
+                            "name": "workout_summary",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "destinationIO": {
+                            "name": "rep_validated",
+                            "type": "INPUT"
+                        },
+                        "source": "208a5795-9dd2-4954-b2a4-afca6fc2f90b",
+                        "sourceIO": {
+                            "name": "value",
+                            "type": "OUTPUT"
+                        }
+                    },
+                    {
+                        "destination": "11df6df2-f56e-45ea-aa18-297a3bff08ed",
+                        "destinationIO": {
+                            "name": "fin_timer",
+                            "type": "INPUT"
+                        },
+                        "source": "03f49eef-78a9-4104-98be-5ee05294bf83",
+                        "sourceIO": {
+                            "name": "value",
+                            "type": "OUTPUT"
+                        }
                     }
                 ]
             },

@@ -1,1 +1,2 @@
 ingescape>=4
+mediapipe==0.10.9
