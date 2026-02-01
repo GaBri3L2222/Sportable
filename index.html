@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appli Sport Fonctionnelle</title>
+    <style>
+        :root {
+            --primary-border: #2c3e50;
+            --box-grey: #c4c4c4;
+            --input-grey: #8c8c8c;
+            --input-blue: #6495ed;
+            --btn-green: #3e7d23;
+            --btn-red: #c92a42;
+            --text-color: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ==================== SCREEN CREATION ==================== */
+        #creation-screen {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .screen-card {
+            background: white;
+            border: 2px solid var(--primary-border);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .container-scroll {
+            width: 100%;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-bottom: 15px;
+        }
+
+        .separator {
+            width: 100%;
+            height: 1px;
+            background-color: #a0c4ff;
+            margin: 10px 0;
+            border: none;
+        }
+
+        .exercise-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .exercise-name {
+            background-color: var(--box-grey);
+            padding: 15px 10px;
+            width: 130px;
+            text-align: center;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #444;
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .exercise-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.8rem;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .num-box {
+            background-color: var(--input-grey);
+            border: 1px solid #777;
+            width: 40px;
+            height: 25px;
+            text-align: center;
+            color: black;
+            font-weight: bold;
+            border-radius: 2px;
+        }
+
+        .num-box.blue {
+            background-color: var(--input-blue);
+            color: white;
+            border: none;
+        }
+
+        .rest-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin: 5px 0;
+            font-size: 0.9rem;
+            padding: 10px 0;
+            background-color: #f9fbfd;
+            border-radius: 5px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #c92a42;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .delete-btn:hover {
+            color: #a81e33;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .btn-green {
+            background-color: var(--btn-green);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn-green:hover {
+            background-color: #2e611a;
+        }
+
+        .btn-red {
+            background-color: var(--btn-red);
+            color: white;
+            border: none;
+            padding: 10px 40px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-top: 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        .btn-red:hover {
+            background-color: #a81e33;
+        }
+
+        /* ==================== SCREEN ACTIVE ==================== */
+        #active-screen {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .active-container {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .current-exercise-header {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .current-exercise-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-border);
+        }
+
+        .progress-card {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .progress-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .progress-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .progress-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-border);
+        }
+
+        .vision-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .vision-indicator {
+            border: 2px solid;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .vision-active {
+            border-color: green;
+            background-color: #e8f5e9;
+            color: green;
+        }
+
+        .vision-inactive {
+            border-color: red;
+            background-color: #ffebee;
+            color: red;
+        }
+
+        .feedback-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feedback-display {
+            min-height: 100px;
+            padding: 15px;
+            background-color: #fff9e6;
+            border: 1px solid #ffe082;
+            border-radius: 10px;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .rest-time-card {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #2196f3;
+            text-align: center;
+        }
+
+        .rest-time-label {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .rest-time-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .exercise-counter {
+            text-align: center;
+            padding: 12px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .next-step-info {
+            background-color: #f0f0f0;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .next-step-label {
+            color: #777;
+            margin-bottom: 5px;
+        }
+
+        .next-step-value {
+            font-weight: bold;
+            color: var(--primary-border);
+        }
+
+        /* Right Panel - Skeleton */
+        .skeleton-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .skeleton-label {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        #skeletonCanvas {
+            background-color: #f0f0f0;
+            border: 2px solid var(--primary-border);
+            border-radius: 15px;
+            width: 100%;
+            height: 600px;
+        }
+
+        .btn-next {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .btn-next:hover {
+            background-color: #1a252f;
+        }
+
+        @media (max-width: 1200px) {
+            .active-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ==================== CREATION SCREEN ==================== -->
+    <div id="creation-screen" class="screen-card">
+        <h2>Création d'une séance</h2>
+        <div id="workout-list" class="container-scroll">
+            <!-- Les exercices et pauses seront ajoutés ici dynamiquement -->
+        </div>
+        <div class="action-buttons">
+            <button class="btn-green" onclick="addExercise()">Ajouter exercice +</button>
+            <button class="btn-green" onclick="addRest()">Ajouter récup +</button>
+        </div>
+        <button class="btn-red" onclick="startWorkout()">START</button>
+    </div>
+
+    <!-- ==================== ACTIVE SCREEN ==================== -->
+    <div id="active-screen" class="screen-card hidden">
+        <h2>Exercice en cours</h2>
+
+        <div class="active-container">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Current Exercise Header -->
+                <div class="current-exercise-header">
+                    <div class="current-exercise-name" id="display-name">En attente...</div>
+                </div>
+
+                <!-- Progress Info (only for exercises) -->
+                <div class="progress-card" id="progress-card">
+                    <div class="progress-row">
+                        <span class="progress-label">Répétitions restantes:</span>
+                        <span class="progress-value" id="display-reps">0</span>
+                    </div>
+                    <div class="progress-row">
+                        <span class="progress-label">Séries restantes:</span>
+                        <span class="progress-value" id="display-sets">0</span>
+                    </div>
+                </div>
+
+                <!-- Vision State -->
+                <div class="vision-section">
+                    <div class="section-title">Vision:</div>
+                    <div id="vision-indicator" class="vision-indicator vision-inactive">
+                        ✗ Vision Inactive
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div class="feedback-section">
+                    <div class="section-title">Feedback:</div>
+                    <div class="feedback-display" id="feedback-display">
+                        En attente de feedback...
+                    </div>
+                </div>
+
+                <div class="separator"></div>
+
+                <!-- Rest Time -->
+                <div class="rest-time-card">
+                    <div class="rest-time-label">Temps de repos:</div>
+                    <div class="rest-time-value" id="rest-time-display">0s</div>
+                </div>
+
+                <!-- Exercise Counter -->
+                <div class="exercise-counter" id="exercise-counter">
+                    Élément 0 / 0
+                </div>
+
+                <!-- Next Step Info -->
+                <div class="next-step-info">
+                    <div class="next-step-label">À venir:</div>
+                    <div class="next-step-value" id="next-step-display">Fin de séance</div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <button class="btn-next" onclick="nextStep()">Étape Suivante &gt;&gt;</button>
+                <button class="btn-red" style="text-transform: none; padding: 10px 30px; margin-top: 10px;"
+                    onclick="quitWorkout()">Quitter</button>
+            </div>
+
+            <!-- Right Panel - Skeleton -->
+            <div class="skeleton-panel">
+                <div class="skeleton-label">Visualisation du squelette:</div>
+                <canvas id="skeletonCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== MediaPipe Pose Connections ====================
+        const POSE_CONNECTIONS = [
+            // Face
+            [0, 1], [1, 2], [2, 3], [3, 7],
+            [0, 4], [4, 5], [5, 6], [6, 8],
+            [9, 10],
+            // Torso
+            [11, 12], [11, 23], [12, 24], [23, 24],
+            // Left arm
+            [11, 13], [13, 15], [15, 17], [15, 19], [15, 21], [17, 19],
+            // Right arm
+            [12, 14], [14, 16], [16, 18], [16, 20], [16, 22], [18, 20],
+            // Left leg
+            [23, 25], [25, 27], [27, 29], [27, 31], [29, 31],
+            // Right leg
+            [24, 26], [26, 28], [28, 30], [28, 32], [30, 32]
+        ];
+
+        // ==================== Global Variables ====================
+        let workoutPlan = [];
+        let currentStepIndex = 0;
+        let updateInterval = null;
+        let currentSkeletonData = null;
+
+        // Called from Python via evaluate_js to set exercises directly
+        function setExercisesFromPython(data) {
+            try {
+                const obj = (typeof data === 'string') ? JSON.parse(data) : data;
+                if (Array.isArray(obj)) {
+                    workoutPlan = obj;
+                } else if (obj && obj.exercises) {
+                    workoutPlan = obj.exercises;
+                    if (typeof obj.current_index === 'number') currentStepIndex = obj.current_index;
+                }
+                renderWorkoutList();
+                // If execution view visible, refresh it
+                if (!document.getElementById('active-screen').classList.contains('hidden')) {
+                    updateActiveScreen();
+                }
+            } catch (e) {
+                console.error('setExercisesFromPython error', e);
+            }
+        }
+
+        // ==================== CREATION SCREEN Functions ====================
+        function addExercise() {
+            const name = prompt('Nom de l\'exercice :', 'pompes');
+            if (!name) return;
+            const reps = parseInt(prompt('Répétitions :', '10')) || 10;
+            const sets = parseInt(prompt('Séries :', '3')) || 3;
+
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.add_exercise(name, reps, sets).then(() => {
+                    loadWorkoutPlan();
+                });
+            } else {
+                workoutPlan.push({
+                    type: 'exercice',
+                    nom: name,
+                    repetitions: reps,
+                    series: sets
+                });
+                renderWorkoutList();
+            }
+        }
+
+        function addRest() {
+            const duration = parseInt(prompt('Durée de la pause (secondes) :', '30')) || 30;
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.add_rest(duration).then(() => {
+                    loadWorkoutPlan();
+                });
+            } else {
+                workoutPlan.push({
+                    type: 'pause',
+                    duree_secondes: duration
+                });
+                renderWorkoutList();
+            }
+        }
+
+        function deleteItem(index) {
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.remove_exercise(index).then(() => {
+                    loadWorkoutPlan();
+                });
+            } else {
+                workoutPlan.splice(index, 1);
+                renderWorkoutList();
+            }
+        }
+
+        function loadWorkoutPlan() {
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.get_exercises().then(exercises => {
+                    workoutPlan = exercises;
+                    renderWorkoutList();
+                });
+            }
+        }
+
+        function renderWorkoutList() {
+            const container = document.getElementById('workout-list');
+            container.innerHTML = '';
+
+            workoutPlan.forEach((item, idx) => {
+                if (item.type === 'exercice') {
+                    const div = document.createElement('div');
+                    div.className = 'exercise-row';
+                    div.innerHTML = `
+                        <input type="text" class="exercise-name" value="${item.nom}" 
+                               onchange="updateExerciseName(${idx}, this.value)">
+                        <div class="exercise-inputs">
+                            <div class="input-group">
+                                <span>Répétitions:</span>
+                                <input type="number" class="num-box" value="${item.repetitions}" min="1" 
+                                       onchange="updateExerciseReps(${idx}, this.value)" />
+                            </div>
+                            <div class="input-group">
+                                <span>Séries:</span>
+                                <input type="number" class="num-box" value="${item.series}" min="1" 
+                                       onchange="updateExerciseSets(${idx}, this.value)" />
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteItem(${idx})" title="Supprimer">&#10006;</button>
+                    `;
+                    container.appendChild(div);
+                } else if (item.type === 'pause') {
+                    const div = document.createElement('div');
+                    div.className = 'rest-row';
+                    div.innerHTML = `
+                        <span>Récupération :</span>
+                        <input type="number" class="num-box blue" value="${item.duree_secondes}" min="1" 
+                               onchange="updateRestDuration(${idx}, this.value)" />
+                        <span>secondes</span>
+                        <button class="delete-btn" onclick="deleteItem(${idx})" title="Supprimer">&#10006;</button>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+        }
+
+        function updateExerciseName(index, value) {
+            workoutPlan[index].nom = value;
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.update_exercise(index, { nom: value }).then(() => loadWorkoutPlan());
+            }
+        }
+
+        function updateExerciseReps(index, value) {
+            const v = parseInt(value) || 0;
+            workoutPlan[index].repetitions = v;
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.update_exercise(index, { repetitions: v }).then(() => loadWorkoutPlan());
+            }
+        }
+
+        function updateExerciseSets(index, value) {
+            const v = parseInt(value) || 0;
+            workoutPlan[index].series = v;
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.update_exercise(index, { series: v }).then(() => loadWorkoutPlan());
+            }
+        }
+
+        function updateRestDuration(index, value) {
+            const v = parseInt(value) || 0;
+            workoutPlan[index].duree_secondes = v;
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.update_exercise(index, { duree_secondes: v }).then(() => loadWorkoutPlan());
+            }
+        }
+
+        // ==================== TRANSITION Functions ====================
+        function startWorkout() {
+            if (workoutPlan.length === 0) {
+                alert("Ajoutez au moins un exercice !");
+                return;
+            }
+
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.start_workout().then(() => {
+                    loadWorkoutPlan();
+                    showActiveScreen();
+                });
+            } else {
+                showActiveScreen();
+            }
+        }
+
+        function showActiveScreen() {
+            document.getElementById('creation-screen').classList.add('hidden');
+            document.getElementById('active-screen').classList.remove('hidden');
+            currentStepIndex = 0;
+            startUpdateLoop();
+        }
+
+        function quitWorkout() {
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.stop_workout().then(() => {
+                    showCreationScreen();
+                });
+            } else {
+                showCreationScreen();
+            }
+        }
+
+        function showCreationScreen() {
+            document.getElementById('active-screen').classList.add('hidden');
+            document.getElementById('creation-screen').classList.remove('hidden');
+            stopUpdateLoop();
+            loadWorkoutPlan();
+        }
+
+        // ==================== ACTIVE SCREEN Functions ====================
+        function startUpdateLoop() {
+            if (updateInterval) clearInterval(updateInterval);
+            updateInterval = setInterval(updateActiveScreen, 500);
+            updateActiveScreen();
+        }
+
+        function stopUpdateLoop() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        }
+
+        function updateActiveScreen() {
+            if (typeof pywebview !== 'undefined') {
+                pywebview.api.get_execution_state().then(state => {
+                    renderActiveState(state);
+                });
+            } else {
+                // Demo mode
+                renderActiveState({
+                    current_exercise_name: workoutPlan[currentStepIndex]?.nom || 'Demo Exercise',
+                    reps_remaining: workoutPlan[currentStepIndex]?.repetitions || 0,
+                    sets_remaining: workoutPlan[currentStepIndex]?.series || 0,
+                    vision_state: false,
+                    feedback: 'En attente de feedback...',
+                    rest_time: 0,
+                    current_index: currentStepIndex,
+                    total_exercises: workoutPlan.length,
+                    skeleton_data: null
+                });
+            }
+        }
+
+        function renderActiveState(state) {
+            // Keep local index in sync with backend
+            if (typeof state.current_index === 'number') {
+                currentStepIndex = state.current_index;
+            }
+
+            const currentStep = workoutPlan[currentStepIndex];
+            const isExercise = currentStep?.type === 'exercice';
+            const isPause = currentStep?.type === 'pause';
+
+            // Update exercise name
+            if (isExercise) {
+                document.getElementById('display-name').textContent =
+                    `Exercice actuel: ${currentStep.nom}`;
+            } else if (isPause) {
+                document.getElementById('display-name').textContent =
+                    `Pause : ${currentStep.duree_secondes} s`;
+            } else {
+                document.getElementById('display-name').textContent = state.current_exercise_name || 'En attente...';
+            }
+
+            // Show/hide progress card for exercises only
+            const progressCard = document.getElementById('progress-card');
+            if (isExercise) {
+                progressCard.style.display = 'block';
+                document.getElementById('display-reps').textContent = state.reps_remaining || 0;
+                document.getElementById('display-sets').textContent = state.sets_remaining || 0;
+            } else {
+                progressCard.style.display = 'none';
+            }
+
+            // Update vision state
+            const visionEl = document.getElementById('vision-indicator');
+            if (state.vision_state) {
+                visionEl.className = 'vision-indicator vision-active';
+                visionEl.textContent = '✓ Vision Active';
+            } else {
+                visionEl.className = 'vision-indicator vision-inactive';
+                visionEl.textContent = '✗ Vision Inactive';
+            }
+
+            // Update feedback
+            document.getElementById('feedback-display').textContent =
+                state.feedback || 'En attente de feedback...';
+
+            // Update rest time
+            document.getElementById('rest-time-display').textContent =
+                (state.rest_time || 0) + 's';
+
+            // Update counter
+            document.getElementById('exercise-counter').textContent =
+                `Élément ${state.current_index + 1} / ${state.total_exercises}`;
+
+            // Update next step info
+            const nextIndex = state.current_index + 1;
+            if (nextIndex < workoutPlan.length) {
+                const nextStep = workoutPlan[nextIndex];
+                if (nextStep.type === 'exercice') {
+                    document.getElementById('next-step-display').textContent =
+                        `${nextStep.nom} (${nextStep.series}x${nextStep.repetitions})`;
+                } else {
+                    document.getElementById('next-step-display').textContent =
+                        `Récupération : ${nextStep.duree_secondes} s`;
+                }
+            } else {
+                document.getElementById('next-step-display').textContent = 'Fin de séance';
+            }
+
+            // Update skeleton
+            if (state.skeleton_data) {
+                drawSkeleton(state.skeleton_data);
+            }
+        }
+
+        function nextStep() {
+            currentStepIndex++;
+            if (currentStepIndex >= workoutPlan.length) {
+                alert("Séance terminée ! Bravo !");
+                quitWorkout();
+                return;
+            }
+            updateActiveScreen();
+        }
+
+        // ==================== SKELETON DRAWING ====================
+        function drawSkeleton(skeletonJson) {
+            try {
+                const data = typeof skeletonJson === 'string' ? JSON.parse(skeletonJson) : skeletonJson;
+                currentSkeletonData = data;
+
+                const canvas = document.getElementById('skeletonCanvas');
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+
+                // Clear canvas
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const landmarks = data.landmarks || [];
+                if (landmarks.length === 0) {
+                    ctx.fillStyle = '#646464';
+                    ctx.font = '16px Segoe UI';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('En attente du squelette...', canvas.width / 2, canvas.height / 2);
+                    return;
+                }
+
+                // Filter visible landmarks
+                const visibleLandmarks = landmarks.filter(lm => (lm.visibility || 0) > 0.5);
+                if (visibleLandmarks.length === 0) {
+                    ctx.fillStyle = '#646464';
+                    ctx.font = '16px Segoe UI';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('Aucun point visible', canvas.width / 2, canvas.height / 2);
+                    return;
+                }
+
+                // Calculate bounds
+                const xCoords = visibleLandmarks.map(lm => lm.x);
+                const yCoords = visibleLandmarks.map(lm => lm.y);
+                const minX = Math.min(...xCoords);
+                const maxX = Math.max(...xCoords);
+                const minY = Math.min(...yCoords);
+                const maxY = Math.max(...yCoords);
+
+                const dataWidth = maxX - minX;
+                const dataHeight = maxY - minY;
+
+                if (dataWidth === 0 || dataHeight === 0) return;
+
+                const padding = 40;
+                const scaleX = (canvas.width - 2 * padding) / dataWidth;
+                const scaleY = (canvas.height - 2 * padding) / dataHeight;
+                const scale = Math.min(scaleX, scaleY);
+
+                const offsetX = padding - minX * scale + (canvas.width - 2 * padding - dataWidth * scale) / 2;
+                const offsetY = padding - minY * scale + (canvas.height - 2 * padding - dataHeight * scale) / 2;
+
+                function transform(landmark) {
+                    return {
+                        x: landmark.x * scale + offsetX,
+                        y: landmark.y * scale + offsetY
+                    };
+                }
+
+                // Draw connections
+                ctx.strokeStyle = 'rgb(70, 130, 180)';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+
+                POSE_CONNECTIONS.forEach(([startIdx, endIdx]) => {
+                    if (startIdx < landmarks.length && endIdx < landmarks.length) {
+                        const startLm = landmarks[startIdx];
+                        const endLm = landmarks[endIdx];
+
+                        if ((startLm.visibility || 0) > 0.5 && (endLm.visibility || 0) > 0.5) {
+                            const start = transform(startLm);
+                            const end = transform(endLm);
+
+                            ctx.beginPath();
+                            ctx.moveTo(start.x, start.y);
+                            ctx.lineTo(end.x, end.y);
+                            ctx.stroke();
+                        }
+                    }
+                });
+
+                // Draw landmarks with color coding
+                landmarks.forEach((landmark, i) => {
+                    const visibility = landmark.visibility || 0;
+                    if (visibility > 0.5) {
+                        const point = transform(landmark);
+
+                        // Color by body part
+                        let color;
+                        if (i >= 0 && i <= 10) { // Face
+                            color = `rgba(255, 100, 100, ${visibility})`;
+                        } else if (i >= 11 && i <= 22) { // Arms
+                            color = `rgba(100, 255, 100, ${visibility})`;
+                        } else if (i >= 23 && i <= 24) { // Hips
+                            color = `rgba(255, 255, 100, ${visibility})`;
+                        } else { // Legs
+                            color = `rgba(100, 100, 255, ${visibility})`;
+                        }
+
+                        ctx.fillStyle = color;
+                        ctx.strokeStyle = 'rgb(50, 50, 50)';
+                        ctx.lineWidth = 1;
+
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                });
+
+                // Draw info text at bottom
+                ctx.fillStyle = 'rgb(50, 50, 50)';
+                ctx.font = 'bold 10pt Segoe UI';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                const infoText = `Stage: ${data.stage || ''}${data.feedback ? ' | ' + data.feedback : ''}`;
+                ctx.fillText(infoText, 10, canvas.height - 10);
+
+            } catch (e) {
+                console.error('Error drawing skeleton:', e);
+            }
+        }
+
+        // ==================== INITIALIZATION ====================
+        window.addEventListener('pywebviewready', function () {
+            loadWorkoutPlan();
+        });
+
+        window.addEventListener('resize', function () {
+            if (currentSkeletonData) {
+                drawSkeleton(currentSkeletonData);
+            }
+        });
+
+        window.onload = function () {
+            if (typeof pywebview !== 'undefined') {
+                loadWorkoutPlan();
+            } else {
+                renderWorkoutList();
+            }
+        };
+    </script>
+</body>
+
+</html>
