@@ -522,7 +522,7 @@ class Moteur(metaclass=Singleton):
                 self.__Exercice_en_cours["id"] = -1
                 self.__Exercice_en_cours["séries_restantes"] = 0
                 self.__Exercice_en_cours["répétitions_restantes"] = 0
-                self.Current_ExerciceO = "None"
+                self.Current_ExerciceO = "Pause"
                 self.Rep_RemainingO = 0
                 self.Set_RemainingO = 0
                 

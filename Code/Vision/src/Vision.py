@@ -619,6 +619,9 @@ class Vision(metaclass=Singleton):
                 self.analyze_lever_jambes(landmarks, image)
             elif exercise_name == 'montee_genou':
                 self.analyze_montee_genou(landmarks, image)
+            elif exercise_name == 'Pause':
+                self.feedback = "PAUSED"
+                self.stage = "IDLE"
             else:
                 self.feedback = f"UNKNOWN EXERCISE: {exercise_name}"
         except Exception as e:

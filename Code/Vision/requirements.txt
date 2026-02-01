@@ -1,5 +1,2 @@
 ingescape>=4
-<<<<<<< HEAD
 mediapipe==0.10.9
-=======
->>>>>>> e5a0e1401f983429f320a6a07591bbcf59c601ff
