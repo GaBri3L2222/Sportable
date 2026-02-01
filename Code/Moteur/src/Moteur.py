@@ -308,8 +308,10 @@ class Moteur(metaclass=Singleton):
                 print("Arrêt de la séance.")
             
             return self.__Planning_workout.ToJSON()
+            
         else:
             print("Service Stopworkout appelé par un agent non autorisé :", sender_agent_name)
+            return ""
             
     def Startworkout(self, sender_agent_name, sender_agent_uuid, Displayjson):
         if(sender_agent_name == "Interface graphique" or sender_agent_name == "Ingescape Circle"):
@@ -330,7 +332,9 @@ class Moteur(metaclass=Singleton):
                     
                     # On arrête la session en cours
                     self.Session_StateO = MoteurCOMPOSING
-                    return
+                    
+                    # On répond avec un JSON vide
+                    return ""
                 
                 elif next_element.GetType() == EXERCICE:
                 
@@ -352,63 +356,84 @@ class Moteur(metaclass=Singleton):
                     
                     # On met à jour les outputs
                     self.Rest_Time_RemainingO = self.__Pause_en_cours["temps_restant"]
-                    
+                 
+                # On retourne le planning mis à jour   
                 print("Démarrage de la séance.")
+                return self.__Planning_workout.ToJSON()
+                    
+                
             
         else:
+            # On répond avec un JSON vide
             print("Service Startworkout appelé par un agent non autorisé :", sender_agent_name)
+            return ""
 
     def Removerecuperation(self, sender_agent_name, sender_agent_uuid, Recuperationid):
         if(sender_agent_name == "Interface graphique" or sender_agent_name == "Ingescape Circle"):
             
+            success = False 
+            
             if self.VerifyState(MoteurCOMPOSING):
             
                 # On retire la récupération
-                bool = self.__Planning_workout.RemovePause(Recuperationid)
+                success = self.__Planning_workout.RemovePause(Recuperationid)
                 
-                # On retourne le planning mis à jour
-                return bool
+            # On retourne le booléen de succès
+            return success
         else:
+            # On retourne le booléen de succès à False
+            return False
             print("Service Removerecuperation appelé par un agent non autorisé :", sender_agent_name)
 
     def Addrecuperation(self, sender_agent_name, sender_agent_uuid):
         if(sender_agent_name == "Interface graphique" or sender_agent_name == "Ingescape Circle"):
+            
+            newIDPause = -1
             
             if self.VerifyState(MoteurCOMPOSING):
                 
                 # On ajoute la récupération
                 newIDPause = self.__Planning_workout.AddPause()
                 
-                # On retourne le planning mis à jour
-                return newIDPause
+            # On retourne l'id de la récupération ajoutée
+            return newIDPause
         else:
+            # On retourne -1 pour indiquer un échec
             print("Service Addrecuperation appelé par un agent non autorisé :", sender_agent_name)
+            return -1
 
     def Addexercice(self, sender_agent_name, sender_agent_uuid):
         if(sender_agent_name == "Interface graphique" or sender_agent_name == "Ingescape Circle"):
+            
+            newIDExo = -1
             
             if self.VerifyState(MoteurCOMPOSING):
                 
                 # On ajoute l'exercice 
                 newIDExo = self.__Planning_workout.AddExercice()
                 
-                # On retourne le planning mis à jour
-                return newIDExo
+            # On retourne l'id de l'exercice ajouté
+            return newIDExo
         else:
+            # On retourne -1 pour indiquer un échec
             print("Service Addexercice appelé par un agent non autorisé :", sender_agent_name)
+            return -1
 
     def Removeexercice(self, sender_agent_name, sender_agent_uuid, Exerciceid):
         if(sender_agent_name == "Interface graphique" or sender_agent_name == "Ingescape Circle"):
             
+            succes = False
+            
             if self.VerifyState(MoteurCOMPOSING):
                 
                 # On retire l'exercice 
-                bool = self.__Planning_workout.RemoveExercice(Exerciceid)
+                succes = self.__Planning_workout.RemoveExercice(Exerciceid)
                 
-                # On retourne le planning mis à jour
-                return bool
+            # On retourne le booléen de succès
+            return succes
         else:
             print("Service Removeexercice appelé par un agent non autorisé :", sender_agent_name)
+            return False
 
     # Autres fonctions internes
     
