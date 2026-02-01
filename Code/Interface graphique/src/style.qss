@@ -18,6 +18,22 @@ QLabel#title {
     margin-bottom: 25px;
 }
 
+QGroupBox {
+    font-weight: bold; 
+    font-size: 12pt;
+    border: 2px solid #000000; 
+    border-radius: 6px;
+    margin-top: 1.1em; 
+    padding-top: 10px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left; 
+    padding-top: 15px;
+    color: #333; 
+}
+
 /* Exercise name labels */
 QLabel#exerciseName {
     background-color: #c4c4c4;
@@ -49,23 +65,18 @@ QSpinBox, QLineEdit, QComboBox {
 QSpinBox::up-button, QSpinBox::down-button {
     background-color: #7a7a7a;
     width: 20px;
-    border-left: 1px solid #666;
 }
 
 QSpinBox::up-arrow {
-    width: 0; 
-    height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-bottom: 5px solid white; 
+    image: url("icons/arrow_up.png");
+    width: 25px;
+    height: 25px;
 }
 
 QSpinBox::down-arrow {
-    width: 0; 
-    height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid white;
+    image: url("icons/arrow_down.png");
+    width: 25px;
+    height: 25px;
 }
 
 QSpinBox::up-button:hover, QSpinBox::down-button:hover {
@@ -89,10 +100,21 @@ QComboBox::drop-down {
     width: 20px;
 }
 
+QComboBox:hover {
+    background-color: #6495ed;
+    border: 1px solid #2196F3; 
+    color: white; 
+}
+
+QComboBox::drop-down:hover {
+    background-color: #6495ed;
+    border-left: 1px solid #2196F3;
+}
+
 QComboBox::down-arrow {
-    image: url(arrow_down.png); 
-    width: 12px;
-    height: 12px;
+    image: url("icons/arrow_down.png");
+    width: 35px;
+    height: 35px;
 }
 
 QComboBox QAbstractItemView {

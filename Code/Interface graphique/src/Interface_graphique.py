@@ -552,16 +552,16 @@ class WorkoutWindow(QMainWindow):
         left_layout.addWidget(self.vision_state_indicator)
         
         # Feedback display
-        feedback_label = QLabel("Feedback:")
-        feedback_label.setStyleSheet("font-weight: bold;")
-        left_layout.addWidget(feedback_label)
+        # feedback_label = QLabel("Feedback:")
+        # feedback_label.setStyleSheet("font-weight: bold;")
+        # left_layout.addWidget(feedback_label)
         
-        self.feedback_display = QLabel()
-        self.feedback_display.setObjectName("feedbackDisplay")
-        self.feedback_display.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        self.feedback_display.setWordWrap(True)
-        self.feedback_display.setMinimumHeight(80)
-        left_layout.addWidget(self.feedback_display)
+        # self.feedback_display = QLabel()
+        # self.feedback_display.setObjectName("feedbackDisplay")
+        # self.feedback_display.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        # self.feedback_display.setWordWrap(True)
+        # self.feedback_display.setMinimumHeight(80)
+        # left_layout.addWidget(self.feedback_display)
         
         # Rest time display
         rest_separator = QFrame()
