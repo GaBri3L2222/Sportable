@@ -411,7 +411,7 @@ class WorkoutWindow(QMainWindow):
             ex_form.setSpacing(10)
 
             self.ex_name_input = QComboBox()
-            listeExos=["pompes", "squats","jumping_jacks","lever_jambes","montee_genou"]
+            listeExos=["Pompes", "Squats", "Jumping Jacks", "Levée de jambes", "Montée de genou"]
             self.ex_name_input.addItems(listeExos)
             ex_form.addRow("Exercice :", self.ex_name_input)
 
@@ -633,7 +633,19 @@ class WorkoutWindow(QMainWindow):
     
     def add_exercise_to_list(self):
         """Add exercise from input fields"""
-        name = self.ex_name_input.currentText().strip()
+        name_bf = self.ex_name_input.currentText().strip()
+        name=""
+        match name_bf:
+            case "Pompes":
+                name = "pompes"
+            case "Squats":
+                name = "squats"
+            case "Jumping Jacks":
+                name = "jumping_jacks"
+            case "Lever Jambes":
+                name = "lever_jambes"
+            case "Montée Genou":
+                name = "montee_genou"
         reps = self.ex_reps_spin.value()
         sets = self.ex_sets_spin.value()
 
