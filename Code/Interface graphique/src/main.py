@@ -15,7 +15,10 @@ import time
 from pathlib import Path
 import traceback
 import sys
+import threading
 
+import ingescape as igs
+from PyQt5.QtWidgets import QApplication
 from Interface_graphique import *
 
 port = 5670
@@ -105,6 +108,7 @@ def Squelette_input_callback(io_type, name, value_type, value, my_data):
         agent_object = my_data
         assert isinstance(agent_object, Interface_graphique)
         agent_object.SqueletteI = value
+        agent_object.signal_bridge.update_squelette.emit(value)
         # add code here if needed
     except:
         print(traceback.format_exc())
@@ -114,6 +118,17 @@ def Vision_State_input_callback(io_type, name, value_type, value, my_data):
         agent_object = my_data
         assert isinstance(agent_object, Interface_graphique)
         agent_object.Vision_StateI = value
+        agent_object.signal_bridge.update_vision_state.emit(value)
+        # add code here if needed
+    except:
+        print(traceback.format_exc())
+
+def Feedback_input_callback(io_type, name, value_type, value, my_data):
+    try:
+        agent_object = my_data
+        assert isinstance(agent_object, Interface_graphique)
+        agent_object.FeedbackI = value
+        agent_object.signal_bridge.update_feedback.emit(value)
         # add code here if needed
     except:
         print(traceback.format_exc())
@@ -123,6 +138,7 @@ def Current_Exercice_input_callback(io_type, name, value_type, value, my_data):
         agent_object = my_data
         assert isinstance(agent_object, Interface_graphique)
         agent_object.Current_ExerciceI = value
+        agent_object.signal_bridge.update_current_exercice.emit(value)
         # add code here if needed
     except:
         print(traceback.format_exc())
@@ -132,6 +148,8 @@ def Rep_Remaining_input_callback(io_type, name, value_type, value, my_data):
         agent_object = my_data
         assert isinstance(agent_object, Interface_graphique)
         agent_object.Rep_RemainingI = value
+        agent_object.signal_bridge.update_rep_remaining.emit(value)
+        agent_object.signal_bridge.update_ui.emit()
         # add code here if needed
     except:
         print(traceback.format_exc())
@@ -141,6 +159,8 @@ def Set_Remaining_input_callback(io_type, name, value_type, value, my_data):
         agent_object = my_data
         assert isinstance(agent_object, Interface_graphique)
         agent_object.Set_RemainingI = value
+        agent_object.signal_bridge.update_set_remaining.emit(value)
+        agent_object.signal_bridge.update_ui.emit()
         # add code here if needed
     except:
         print(traceback.format_exc())
@@ -150,6 +170,8 @@ def Rest_Time_Remaining_input_callback(io_type, name, value_type, value, my_data
         agent_object = my_data
         assert isinstance(agent_object, Interface_graphique)
         agent_object.Rest_Time_RemainingI = value
+        agent_object.signal_bridge.update_rest_time.emit(value)
+        agent_object.signal_bridge.update_ui.emit()
         # add code here if needed
     except:
         print(traceback.format_exc())
@@ -159,6 +181,13 @@ def Session_State_input_callback(io_type, name, value_type, value, my_data):
         agent_object = my_data
         assert isinstance(agent_object, Interface_graphique)
         agent_object.Session_StateI = value
+        
+        # Switch view based on session state
+        if agent_object.window:
+            if value == "configuration":
+                agent_object.window.show_config_view()
+            elif value == "execution":
+                agent_object.window.show_execution_view()
         # add code here if needed
     except:
         print(traceback.format_exc())
@@ -172,6 +201,41 @@ def Settotaldisplay_callback(sender_agent_name, sender_agent_uuid, service_name,
         agent_object.Settotaldisplay(sender_agent_name, sender_agent_uuid, Displayjson)
     except:
         print(traceback.format_exc())
+
+
+def run_ingescape_thread(agent, device, port):
+    """Run Ingescape in a separate thread"""
+    igs.observe_agent_events(on_agent_event_callback, agent)
+
+    igs.input_create("squelette", igs.STRING_T, None)
+    igs.observe_input("squelette", Squelette_input_callback, agent)
+    igs.input_create("vision_state", igs.BOOL_T, None)
+    igs.observe_input("vision_state", Vision_State_input_callback, agent)
+    igs.input_create("feedback", igs.STRING_T, None)
+    igs.observe_input("feedback", Feedback_input_callback, agent)
+    igs.input_create("current_exercice", igs.STRING_T, None)
+    igs.observe_input("current_exercice", Current_Exercice_input_callback, agent)
+    igs.input_create("rep_remaining", igs.INTEGER_T, None)
+    igs.observe_input("rep_remaining", Rep_Remaining_input_callback, agent)
+    igs.input_create("set_remaining", igs.INTEGER_T, None)
+    igs.observe_input("set_remaining", Set_Remaining_input_callback, agent)
+    igs.input_create("rest_time_remaining", igs.INTEGER_T, None)
+    igs.observe_input("rest_time_remaining", Rest_Time_Remaining_input_callback, agent)
+    igs.input_create("session_state", igs.STRING_T, None)
+    igs.input_set_description("session_state", """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">programation, execution de la seance</p></body></html>""")
+    igs.observe_input("session_state", Session_State_input_callback, agent)
+
+    igs.output_create("fin_timer", igs.IMPULSION_T, None)
+
+    igs.service_init("setTotalDisplay", Settotaldisplay_callback, agent)
+    igs.service_arg_add("setTotalDisplay", "displayJSON", igs.STRING_T)
+
+    igs.start_with_device(device, port)
+
+    while (not is_interrupted) and igs.is_started():
+        time.sleep(0.1)
+
+    igs.stop()
 
 
 if __name__ == "__main__":
@@ -223,7 +287,7 @@ if __name__ == "__main__":
                 device = list_devices[1]
             else:
                 device = list_devices[0]
-            print("using %s as de fault network device (this is the only one available that is not the loopback)" % str(device))
+            print("using %s as default network device (this is the only one available that is not the loopback)" % str(device))
         else:
             if len(list_devices) == 0:
                 igs.error("No network device found: aborting.")
@@ -235,43 +299,18 @@ if __name__ == "__main__":
                 print_usage()
             exit(1)
 
+    # Create Qt application
+    app = QApplication(sys.argv)
+    
+    # Create agent
     agent = Interface_graphique()
+    
+    # Initialize GUI
+    agent.initialize_gui()
+    
+    # Start Ingescape in a separate thread
+    igs_thread = threading.Thread(target=run_ingescape_thread, args=(agent, device, port), daemon=True)
+    igs_thread.start()
 
-    igs.observe_agent_events(on_agent_event_callback, agent)
-
-    igs.input_create("squelette", igs.STRING_T, None)
-    igs.observe_input("squelette", Squelette_input_callback, agent)
-    igs.input_create("vision_state", igs.BOOL_T, None)
-    igs.observe_input("vision_state", Vision_State_input_callback, agent)
-    igs.input_create("current_exercice", igs.STRING_T, None)
-    igs.observe_input("current_exercice", Current_Exercice_input_callback, agent)
-    igs.input_create("rep_remaining", igs.INTEGER_T, None)
-    igs.observe_input("rep_remaining", Rep_Remaining_input_callback, agent)
-    igs.input_create("set_remaining", igs.INTEGER_T, None)
-    igs.observe_input("set_remaining", Set_Remaining_input_callback, agent)
-    igs.input_create("rest_time_remaining", igs.INTEGER_T, None)
-    igs.observe_input("rest_time_remaining", Rest_Time_Remaining_input_callback, agent)
-    igs.input_create("session_state", igs.STRING_T, None)
-    igs.input_set_description("session_state", """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">programation, execution de la seance</p></body></html>""")
-    igs.observe_input("session_state", Session_State_input_callback, agent)
-
-    igs.service_init("setTotalDisplay", Settotaldisplay_callback, agent)
-    igs.service_arg_add("setTotalDisplay", "displayJSON", igs.STRING_T)
-
-    igs.start_with_device(device, port)
-    # catch SIGINT handler after starting agent
-    signal.signal(signal.SIGINT, signal_handler)
-
-    if interactive_loop:
-        print_usage_help()
-        while True:
-            command = input()
-            if command == "/quit":
-                break
-            elif command == "/help":
-                print_usage_help()
-    else:
-        while (not is_interrupted) and igs.is_started():
-            time.sleep(0.1)
-
-    igs.stop()
+    # Run Qt event loop
+    sys.exit(app.exec_())
