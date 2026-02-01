@@ -35,7 +35,7 @@ QFrame#separator {
 }
 
 /* Input boxes styling */
-QSpinBox, QLineEdit {
+QSpinBox, QLineEdit, QComboBox {
     background-color: #8c8c8c;
     color: black;
     font-weight: bold;
@@ -44,6 +44,24 @@ QSpinBox, QLineEdit {
     padding: 5px;
     min-width: 40px;
     min-height: 25px;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: url(arrow_down.png); 
+    width: 12px;
+    height: 12px;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #8c8c8c;
+    selection-background-color: #6495ed; 
+    background-color: white;
+    outline: none;
 }
 
 QSpinBox#blueInput {
