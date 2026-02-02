@@ -48,7 +48,7 @@ class Vision(metaclass=Singleton):
         self.buffer_size = 7
         self.angle_buffers = {}
 
-        # Machine d'état pour le comptage des répétitions
+        # Machine d'état pour le comptage des répétitions (vérification de séquence)
         self.fsm = {}
 
 
@@ -141,12 +141,13 @@ class Vision(metaclass=Singleton):
             if found:
                 entry['seq'] = []
                 return True
-            if exercise != 'squats' and len(seq) >= 3:
-                for i in range(len(seq)-2):
-                    a,b,c = seq[i], seq[i+1], seq[i+2]
-                    if a != b and b != c and a == c:
-                        entry['seq'] = []
-                        return True
+        if exercise != 'squats' and len(seq) >= 3:
+            for i in range(len(seq)-2):
+                a,b,c = seq[i], seq[i+1], seq[i+2]
+                print(f"Checking triplet: {a}, {b}, {c}")
+                if a != b and b != c and a == c:
+                    entry['seq'] = []
+                    return True
         return False
 
     def get_coords(self, landmarks, part_name):
@@ -309,33 +310,26 @@ class Vision(metaclass=Singleton):
         ankle = self.get_coords(landmarks, "LEFT_ANKLE")
 
         # 2. Création des points "Virtuels" pour la verticale
-        # OpenCV : Y augmente vers le bas. Donc (x, y - 1) est vers le HAUT.
-        hip_vert_up = [hip[0], hip[1] - 1.0]      # Point vertical au-dessus des hanches
-        hip_vert_down = [hip[0], hip[1] + 1.0]    # Point vertical en-dessous des hanches
-        ankle_vert_up = [ankle[0], ankle[1] - 1.0] # Point vertical au-dessus de la cheville
+        hip_vert_up = [hip[0], hip[1] - 1.0]      
+        hip_vert_down = [hip[0], hip[1] + 1.0]    
+        ankle_vert_up = [ankle[0], ankle[1] - 1.0] 
 
         # 3. Calcul des Angles selon vos contraintes (en utilisant votre fonction calculate_angle)
-        
-        # --- Feedback 1 & 2 : Angle du dos (Shoulder-Hip vs Vertical) ---
-        # 0° = Dos vertical, >0° = Penché
+        # basé sur cette source : https://learnopencv.com/ai-fitness-trainer-using-mediapipe/
+        # Feedback 1 et 2 : Angle du dos
         back_angle = self.calculate_angle(shoulder, hip, hip_vert_up)
         back_angle = self.smooth_angle('back_vert', back_angle)
 
-        # --- Feedback 3 & 5 : Angle des cuisses (Hip-Knee vs Vertical Bas) ---
-        # 0° = Debout (Jambe verticale), 90° = Parallèle, >90° = Profond
+        # Feedback 3 & 5 : Angle des cuisses (Hip-Knee vs Vertical Bas) 
         thigh_angle = self.calculate_angle(knee, hip, hip_vert_down)
         thigh_angle = self.smooth_angle('thigh_vert', thigh_angle)
 
-        # --- Feedback 4 : Angle des tibias (Knee-Ankle vs Vertical Haut) ---
-        # 0° = Tibia vertical, >0° = Genou qui avance
+        #Feedback 4 : Angle des tibias (Knee-Ankle vs Vertical Haut) 
         shin_angle = self.calculate_angle(knee, ankle, ankle_vert_up)
         shin_angle = self.smooth_angle('shin_vert', shin_angle)
         
-        # --- Angle de flexion classique pour l'affichage Squelette (Optionnel mais utile) ---
+        # Angle de flexion classique pour l'affichage Squelette (Optionnel mais utile)
         raw_knee = self.calculate_angle(hip, knee, ankle)
-
-        # 4. Logique FSM (Machine à États) basée sur l'angle des cuisses (Thigh Angle)
-        # S1: Debout (<30°) | S2: Transition (30°-85°) | S3: Bas (>85°)
         
         prev_state = self.fsm.get('squats', {}).get('state')
         state = prev_state or 'S1'
@@ -356,7 +350,6 @@ class Vision(metaclass=Singleton):
             self.feedback = "KNEE OVER TOES" # "Knee falling over toes"
         
         # > Feedback 5 (Sévère): Squat trop profond (> 95°)
-        # La consigne dit que c'est une "incorrect posture" si > 95
         elif state == 'S3' and thigh_angle > 95:
             self.feedback = "TOO DEEP"
 
@@ -486,12 +479,11 @@ class Vision(metaclass=Singleton):
         shoulder = self.get_coords(landmarks, "LEFT_SHOULDER")
 
         # 2. Points virtuels pour la verticale (Y augmente vers le bas)
-        hip_vert_down_l = [l_hip[0], l_hip[1] + 1.0] # Pour angle cuisse G
-        hip_vert_down_r = [r_hip[0], r_hip[1] + 1.0] # Pour angle cuisse D
-        hip_vert_up = [l_hip[0], l_hip[1] - 1.0]     # Pour angle dos
+        hip_vert_down_l = [l_hip[0], l_hip[1] + 1.0]
+        hip_vert_down_r = [r_hip[0], r_hip[1] + 1.0]
+        hip_vert_up = [l_hip[0], l_hip[1] - 1.0]
 
         # 3. Calcul des Angles (0° = Debout/Vertical, 90° = Horizontal)
-        
         # Angle Cuisse Gauche
         l_thigh_angle = self.calculate_angle(l_knee, l_hip, hip_vert_down_l)
         l_thigh_angle = self.smooth_angle('mk_l_thigh', l_thigh_angle)
@@ -509,9 +501,6 @@ class Vision(metaclass=Singleton):
         valid_form = back_angle < 25
         
         # 5. Machine à États (Alternance Gauche -> Droite)
-        
-        # Récupération de l'état précédent ('WAIT_L', 'WAIT_R', ou 'IDLE')
-        # 'seq' nous servira à savoir quelle jambe a été validée en dernier
         entry = self.fsm.setdefault('montee_genou', {'state': 'IDLE', 'last_leg': None})
         state = entry['state']
         
@@ -547,9 +536,8 @@ class Vision(metaclass=Singleton):
         # Si on est en train de lever la DROITE
         elif state == 'R_UP':
             self.feedback = "GOOD RIGHT!"
-            # On attend que ça redescende
             if r_thigh_angle < DOWN_THRESH:
-                entry['state'] = 'WAIT_L' # Maintenant on veut la gauche !
+                entry['state'] = 'WAIT_L'
 
         # On attend la jambe DROITE
         elif state == 'WAIT_R':
@@ -557,8 +545,6 @@ class Vision(metaclass=Singleton):
             if current_lift == 'RIGHT':
                 entry['state'] = 'R_UP'
                 entry['last_leg'] = 'RIGHT'
-                # C'est ici qu'on valide une "demi-rep" ou la fin d'un cycle
-                # Si vous comptez 1 rep = G + D, on incrémente ici si on a commencé par G
             elif current_lift == 'LEFT':
                 self.feedback = "NO! USE RIGHT LEG"
         

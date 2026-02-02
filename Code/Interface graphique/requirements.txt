@@ -1,2 +1,2 @@
 ingescape>=4
-PyQt5>=5.15.0
+pywebview

@@ -115,7 +115,6 @@ def Current_Exercice_input_callback(io_type, name, value_type, value, my_data):
 
 if __name__ == "__main__":
 
-    # catch SIGINT handler before starting agent
     signal.signal(signal.SIGINT, signal_handler)
     interactive_loop = False
 
@@ -188,7 +187,6 @@ if __name__ == "__main__":
     igs.output_set_description("vision_state", """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">arrive à détécter quelqu'un</p></body></html>""")
 
     igs.start_with_device(device, port)
-    # catch SIGINT handler after starting agent
     signal.signal(signal.SIGINT, signal_handler)
 
     # Initialiser la webcam et MediaPipe

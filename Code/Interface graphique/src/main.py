@@ -213,7 +213,6 @@ def on_exerice_added_callback(sender_agent_name, sender_agent_uuid, service_name
 
 
 def run_ingescape_thread(agent, device, port):
-    """Run Ingescape in a separate thread"""
     igs.observe_agent_events(on_agent_event_callback, agent)
 
     igs.input_create("squelette", igs.STRING_T, None)
@@ -311,18 +310,18 @@ if __name__ == "__main__":
                 print_usage()
             exit(1)
 
-    # Create Qt application
+    # Creer l'application Qt
     app = QApplication(sys.argv)
     
-    # Create agent
+    # Creer l'agent Interface graphique
     agent = Interface_graphique()
     
-    # Initialize GUI
+    # Initialiser l'interface graphique
     agent.initialize_gui()
     
-    # Start Ingescape in a separate thread
+    # Str=art Ingescape dans un thread séparé
     igs_thread = threading.Thread(target=run_ingescape_thread, args=(agent, device, port), daemon=True)
     igs_thread.start()
 
-    # Run Qt event loop
+    # Run the Qt application event loop
     sys.exit(app.exec_())

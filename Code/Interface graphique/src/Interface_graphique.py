@@ -21,39 +21,38 @@ import threading
 
 
 class SkeletonWidget(QWidget):
-    """Widget to draw the skeleton from MediaPipe landmarks"""
+    # Dessine un squelette à partir de données de points 3D
     
-    # MediaPipe Pose connections
     POSE_CONNECTIONS = [
-        # Face
-        (0, 1), (1, 2), (2, 3), (3, 7),  # Left eye to left ear
-        (0, 4), (4, 5), (5, 6), (6, 8),  # Right eye to right ear
+        # Visage
+        (0, 1), (1, 2), (2, 3), (3, 7),  # Oeil gauche à l'oreille gauche
+        (0, 4), (4, 5), (5, 6), (6, 8),  # Oeil droit à l'oreille droite
         (9, 10),  # Mouth
         
-        # Torso
-        (11, 12),  # Shoulders
-        (11, 23), (12, 24),  # Shoulders to hips
-        (23, 24),  # Hips
+        # Torse
+        (11, 12),  # Epaules
+        (11, 23), (12, 24),  # Epaules vers hanches
+        (23, 24),  # Hanches
         
-        # Left arm
-        (11, 13), (13, 15),  # Shoulder to elbow to wrist
-        (15, 17), (15, 19), (15, 21),  # Wrist to fingers
-        (17, 19),  # Pinky to index
+        # Bras gauche
+        (11, 13), (13, 15),  # Epaule vers coude vers poignet
+        (15, 17), (15, 19), (15, 21),  # Poignet vers doigts
+        (17, 19),  # Oriculaire vers index
         
-        # Right arm
-        (12, 14), (14, 16),  # Shoulder to elbow to wrist
-        (16, 18), (16, 20), (16, 22),  # Wrist to fingers
-        (18, 20),  # Pinky to index
+        # Bras droit
+        (12, 14), (14, 16),  # Epaule vers coude vers poignet
+        (16, 18), (16, 20), (16, 22),  # Poignet vers doigts
+        (18, 20),  # Oriculaire vers index
         
-        # Left leg
-        (23, 25), (25, 27),  # Hip to knee to ankle
-        (27, 29), (27, 31),  # Ankle to heel and foot index
-        (29, 31),  # Heel to foot index
+        # Jambe gauche
+        (23, 25), (25, 27),  # Hanche vers genou vers cheville
+        (27, 29), (27, 31),  # Cheville vers talon et pied index
+        (29, 31),  # Talon vers pied index
         
-        # Right leg
-        (24, 26), (26, 28),  # Hip to knee to ankle
-        (28, 30), (28, 32),  # Ankle to heel and foot index
-        (30, 32),  # Heel to foot index
+        # Jambe droite
+        (24, 26), (26, 28),  # Hanche vers genou vers cheville
+        (28, 30), (28, 32),  # Cheville vers talon et pied index
+        (30, 32),  # Talon vers pied index
     ]
     
     def __init__(self, parent=None):
@@ -64,38 +63,36 @@ class SkeletonWidget(QWidget):
         self.setMinimumSize(400, 500)
         
     def set_skeleton_data(self, skeleton_json):
-        """Parse and set skeleton data from JSON"""
+        # Parser du squelette JSON et mise à jour des landmarks
         try:
             data = json.loads(skeleton_json)
             self.landmarks = data.get("landmarks", [])
             self.feedback = data.get("feedback", "")
             self.stage = data.get("stage", "")
-            self.update()  # Trigger repaint
+            self.update()
         except json.JSONDecodeError:
             self.landmarks = []
             self.feedback = "Erreur de décodage JSON"
             self.update()
     
     def paintEvent(self, event):
-        """Draw the skeleton"""
+        # Dessiner le squelettes
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        # Background
+        # Fond
         painter.fillRect(self.rect(), QColor(240, 240, 240))
         
         if not self.landmarks:
-            # Draw "waiting" message
             painter.setPen(QColor(100, 100, 100))
             painter.drawText(self.rect(), Qt.AlignCenter, "En attente du squelette...")
             return
         
-        # Calculate scaling to fit the skeleton in the widget
+        # Caluler l'échelle et le décalage pour centrer le squelette
         width = self.width()
         height = self.height()
         padding = 40
         
-        # Find bounds of landmarks (using x and y only, ignoring z)
         x_coords = [lm['x'] for lm in self.landmarks if lm.get('visibility', 0) > 0.5]
         y_coords = [lm['y'] for lm in self.landmarks if lm.get('visibility', 0) > 0.5]
         
@@ -107,7 +104,6 @@ class SkeletonWidget(QWidget):
         min_x, max_x = min(x_coords), max(x_coords)
         min_y, max_y = min(y_coords), max(y_coords)
         
-        # Calculate scale and offset
         data_width = max_x - min_x
         data_height = max_y - min_y
         
@@ -122,13 +118,13 @@ class SkeletonWidget(QWidget):
         offset_y = padding - min_y * scale + (height - 2 * padding - data_height * scale) / 2
         
         def transform_point(landmark):
-            """Transform landmark coordinates to widget coordinates"""
+            # Transforme les coordonnées landmark en coordonnées écran
             x = landmark['x'] * scale + offset_x
             y = landmark['y'] * scale + offset_y
             return QPointF(x, y)
         
-        # Draw connections
-        pen = QPen(QColor(70, 130, 180), 3)  # Steel blue
+        # Desinner les connexions
+        pen = QPen(QColor(70, 130, 180), 3)
         painter.setPen(pen)
         
         for connection in self.POSE_CONNECTIONS:
@@ -137,36 +133,36 @@ class SkeletonWidget(QWidget):
                 start_lm = self.landmarks[start_idx]
                 end_lm = self.landmarks[end_idx]
                 
-                # Only draw if both points are visible
+                # On dessine la ligne seulement si les deux points sont visibles
                 if start_lm.get('visibility', 0) > 0.5 and end_lm.get('visibility', 0) > 0.5:
                     start_point = transform_point(start_lm)
                     end_point = transform_point(end_lm)
                     painter.drawLine(start_point, end_point)
         
-        # Draw landmarks
+        # Dessiner les points
         for i, landmark in enumerate(self.landmarks):
             visibility = landmark.get('visibility', 0)
             if visibility > 0.5:
                 point = transform_point(landmark)
                 
-                # Color code by body part
-                if i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:  # Face
-                    color = QColor(255, 100, 100)  # Red
-                elif i in [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]:  # Arms
-                    color = QColor(100, 255, 100)  # Green
-                elif i in [23, 24]:  # Hips
-                    color = QColor(255, 255, 100)  # Yellow
-                else:  # Legs
-                    color = QColor(100, 100, 255)  # Blue
+                # Code de couleur selon la partie du corps
+                if i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:  # Visage
+                    color = QColor(255, 100, 100)  # Rouge
+                elif i in [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]:  # Bras 
+                    color = QColor(100, 255, 100)  # vert
+                elif i in [23, 24]:  # Hanches
+                    color = QColor(255, 255, 100)  # Jaune
+                else:  # Jambes
+                    color = QColor(100, 100, 255)  # Bleu
                 
-                # Adjust opacity based on visibility
+                # Ajuster l'opacité selon la visibilité
                 color.setAlpha(int(255 * visibility))
                 
                 painter.setBrush(QBrush(color))
                 painter.setPen(QPen(QColor(50, 50, 50), 1))
                 painter.drawEllipse(point, 5, 5)
         
-        # Draw stage and feedback info at the bottom
+        # Dessiner les informations de feedback et stage en bas
         painter.setPen(QColor(50, 50, 50))
         font = painter.font()
         font.setPointSize(10)
@@ -181,7 +177,7 @@ class SkeletonWidget(QWidget):
 
 
 class SignalBridge(QObject):
-    """Bridge to emit signals from callbacks"""
+    # Pont de signaux entre les callbacks et l'interface graphique
     update_ui = pyqtSignal()
     update_squelette = pyqtSignal(str)
     update_vision_state = pyqtSignal(bool)
@@ -219,7 +215,7 @@ class Interface_graphique(metaclass=Singleton):
         self.current_exercise_index = 0
         
     def initialize_gui(self):
-        """Initialize and show the GUI"""
+        """Initialise et affiche l'interface graphique"""
         with open("style.qss", "r") as f:
             style = f.read()
     
@@ -232,10 +228,10 @@ class Interface_graphique(metaclass=Singleton):
         self.signal_bridge.update_ui.connect(self.window.update_display)
         self.signal_bridge.update_squelette.connect(self.window.update_squelette_display)
         self.signal_bridge.update_vision_state.connect(self.window.update_vision_state_display)
-        # Connect feedback signal if it exists
+        # Connecte feedback signal
         if hasattr(self.signal_bridge, 'update_feedback'):
             self.signal_bridge.update_feedback.connect(self.window.update_feedback_display)
-        # Connect progress signals
+        # Connecte les signaux de progrès
         if hasattr(self.signal_bridge, 'update_rep_remaining'):
             self.signal_bridge.update_rep_remaining.connect(self.window.update_reps)
         if hasattr(self.signal_bridge, 'update_set_remaining'):
@@ -246,15 +242,15 @@ class Interface_graphique(metaclass=Singleton):
             self.signal_bridge.update_current_exercice.connect(self.window.update_current_exercice_display)
             
     def on_exercice_added(self, sender_agent_name, sender_agent_uuid, exercise_id):
-        """Service callback when an exercise is added in Moteur"""
+        """Service callback quand un exercice est ajouté dans Moteur"""
         print(f"Received exercice added with ID: {exercise_id}")
         self.exercises[-1]["id"] = exercise_id
     
     
     def add_exercise(self, exercise_name, reps, sets):
         result = igs.service_call("Moteur", "addExercice", (), "")
-        print(f"Exercise ID: {id}")
-        """Add exercise to the list"""
+        print(f"Exercise ID: {result}")
+        """Ajoute un exercice à la liste"""
         self.exercises.append({
             "type": "exercice",
             "nom": exercise_name,
@@ -263,6 +259,7 @@ class Interface_graphique(metaclass=Singleton):
             "id": result,
             "done": "false"
         })
+        # Mets a jour la liste dans l'interface
         if self.window:
             self.window.update_exercise_list()
             
@@ -285,41 +282,27 @@ class Interface_graphique(metaclass=Singleton):
                     self.window.update_exercise_list()
 
     def start_workout(self):
-        """Start the workout session"""
+        """Demarre la séance d'entraînement"""
         if len(self.exercises) > 0:
             self.current_exercise_index = 0
             js = {'nom':'Séance', 'elements': self.exercises }
             try:
                 igs.service_call("Moteur", "startWorkout",json.dumps(js),"")
             except:
-                pass  # Service might not be available yet
+                pass
             if self.window:
                 self.window.show_execution_view()
                 
 
     def stop_workout(self):
-        """Stop the workout session"""
+        """Arrête la séance d'entraînement"""
         try:
             js = igs.service_call("Moteur", "stopWorkout",None,"")
-            self.exercises = js.elements # TODO
+            # self.exercises = js.elements # Pas besoin de mettre à jour la liste des exercices ici
         except:
-            pass  # Service might not be available yet
+            pass
         if self.window:
             self.window.show_config_view()
-
-    def next_exercise(self):
-        """Move to next exercise"""
-        if self.current_exercise_index < len(self.exercises) - 1:
-            self.current_exercise_index += 1
-            if self.window:
-                self.window.update_display()
-
-    def previous_exercise(self):
-        """Move to previous exercise"""
-        if self.current_exercise_index > 0:
-            self.current_exercise_index -= 1
-            if self.window:
-                self.window.update_display()
                 
     def add_rest(self, duration_seconds: int):
             try:
@@ -341,7 +324,7 @@ class Interface_graphique(metaclass=Singleton):
         
     # services
     def Settotaldisplay(self, sender_agent_name, sender_agent_uuid, Displayjson):
-        """Service to receive and display JSON data"""
+        """Service pour mettre à jour la liste des exercices depuis Moteur"""
         try:
             data = json.loads(Displayjson)
             if "exercises" in data:
@@ -360,27 +343,27 @@ class WorkoutWindow(QMainWindow):
         self.setWindowTitle("Sportable - Workout Manager")
         self.setGeometry(100, 100, 1200, 800)
         
-        # Update timer for execution view - create FIRST before calling show_config_view()
+        # Timer de mise à jour de l'affichage
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.update_display)
         
-        # Create stacked widget for two views
+        # Créer le widget empilé pour les vues
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
         
-        # Create configuration view
+        # Creer la vue de configuration
         self.config_view = self.create_config_view()
         self.stacked_widget.addWidget(self.config_view)
         
-        # Create execution view
+        # Creer la vue d'exécution
         self.execution_view = self.create_execution_view()
         self.stacked_widget.addWidget(self.execution_view)
         
-        # Show config view by default
+        # montre par défault la vue de configuration
         self.show_config_view()
         
         
-        # Local rest timer
+        # Timer local pour le temps de repos (si le moteur ne fournit pas Rest_Time_RemainingI)
         self.local_rest_seconds = None
         self.local_rest_timer = QTimer(self)
         self.local_rest_timer.setInterval(1000)
@@ -390,22 +373,21 @@ class WorkoutWindow(QMainWindow):
         self._last_rest_item_key = None
 
     def create_config_view(self):
-            """Create the configuration/setup view"""
+            """Créer la vue de configuration"""
             widget = QWidget()
             layout = QVBoxLayout()
             layout.setContentsMargins(20, 20, 20, 20)
             layout.setSpacing(15)
 
-            # Title
             title = QLabel("Création de séance de sport")
             title.setObjectName("title")
             layout.addWidget(title)
 
-            # === Deux formulaires côte à côte ===
+            #Deux formulaires côte à côte
             forms_row = QHBoxLayout()
             forms_row.setSpacing(20)
 
-            # ----- FORMULAIRE EXERCICE -----
+            # FORMULAIRE EXERCICE
             ex_group = QGroupBox("Exercice")
             ex_form = QFormLayout()
             ex_form.setSpacing(10)
@@ -433,13 +415,13 @@ class WorkoutWindow(QMainWindow):
             ex_group.setLayout(ex_form)
             forms_row.addWidget(ex_group, 1)
 
-            # ----- FORMULAIRE PAUSE (à droite) -----
+            # FORMULAIRE PAUSE
             rest_group = QGroupBox("Pause")
             rest_form = QFormLayout()
             rest_form.setSpacing(10)
 
             self.rest_duration_spin = QSpinBox()
-            self.rest_duration_spin.setRange(5, 600)  # 5s à 10min
+            self.rest_duration_spin.setRange(5, 600) 
             self.rest_duration_spin.setValue(30)
             rest_form.addRow("Durée (secondes) :", self.rest_duration_spin)
 
@@ -453,13 +435,13 @@ class WorkoutWindow(QMainWindow):
 
             layout.addLayout(forms_row)
 
-            # Separator
+            # Séparateur
             sep = QFrame()
             sep.setObjectName("separator")
             sep.setFixedHeight(1)
             layout.addWidget(sep)
 
-            # Exercise list
+            # Liste des exercices + pauses
             list_label = QLabel("Séquence configurée :")
             list_label.setObjectName("title")
             layout.addWidget(list_label)
@@ -467,13 +449,13 @@ class WorkoutWindow(QMainWindow):
             self.exercise_list = QListWidget()
             layout.addWidget(self.exercise_list)
 
-            # Delete button for selected item
+            # Bouton supprimer
             delete_btn = QPushButton("Supprimer l'élément sélectionné")
             delete_btn.setObjectName("btnGreen")
             delete_btn.clicked.connect(self.delete_selected_exercise)
             layout.addWidget(delete_btn)
 
-            # Start workout button
+            # Bouton démarrer
             start_btn = QPushButton("Démarrer l'entraînement")
             start_btn.setObjectName("btnRed")
             start_btn.clicked.connect(self.start_workout_clicked)
@@ -485,40 +467,40 @@ class WorkoutWindow(QMainWindow):
 
     
     def create_execution_view(self):
-        """Create the execution/workout view"""
+        """Créer la vue d'exécution"""
         widget = QWidget()
         layout = QVBoxLayout()
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
         
-        # Title
+        # Titre
         title = QLabel("Execution de la séance")
         title.setObjectName("title")
         layout.addWidget(title)
         
-        # Current exercise name
+        # Nom courant de l'exercice
         self.current_exercise_label = QLabel()
         self.current_exercise_label.setObjectName("exerciseName")
         self.current_exercise_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.current_exercise_label)
         
-        # Separator
+        # Separateur
         sep1 = QFrame()
         sep1.setObjectName("separator")
         sep1.setFixedHeight(1)
         layout.addWidget(sep1)
         
-        # Main content layout (side by side)
+        # page de contenu principale
         content_layout = QHBoxLayout()
         content_layout.setSpacing(20)
         
-        # Left side: Progress info and controls
+        # coter gauche : infos de progression, état vision, feedback, temps de repos
         left_widget = QWidget()
         left_layout = QVBoxLayout()
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(15)
         
-        # Progress info
+        # Informations de progression
         info_layout = QVBoxLayout()
         info_layout.setSpacing(8)
         
@@ -540,7 +522,7 @@ class WorkoutWindow(QMainWindow):
         
         left_layout.addLayout(info_layout)
         
-        # Vision state indicator
+        # Indicateur d'état de la vision
         vision_label = QLabel("Vision:")
         vision_label.setStyleSheet("font-weight: bold;")
         left_layout.addWidget(vision_label)
@@ -551,19 +533,7 @@ class WorkoutWindow(QMainWindow):
         self.vision_state_indicator.setMinimumHeight(40)
         left_layout.addWidget(self.vision_state_indicator)
         
-        # Feedback display
-        # feedback_label = QLabel("Feedback:")
-        # feedback_label.setStyleSheet("font-weight: bold;")
-        # left_layout.addWidget(feedback_label)
-        
-        # self.feedback_display = QLabel()
-        # self.feedback_display.setObjectName("feedbackDisplay")
-        # self.feedback_display.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        # self.feedback_display.setWordWrap(True)
-        # self.feedback_display.setMinimumHeight(80)
-        # left_layout.addWidget(self.feedback_display)
-        
-        # Rest time display
+        # Display du temps de pause
         rest_separator = QFrame()
         rest_separator.setObjectName("separator")
         rest_separator.setFixedHeight(1)
@@ -585,7 +555,7 @@ class WorkoutWindow(QMainWindow):
         
         content_layout.addWidget(left_widget)
         
-        # Right side: Skeleton display
+        # Affichage du squelette
         right_widget = QWidget()
         right_layout = QVBoxLayout()
         right_layout.setContentsMargins(0, 0, 0, 0)
@@ -594,7 +564,6 @@ class WorkoutWindow(QMainWindow):
         skeleton_label.setStyleSheet("font-weight: bold; font-size: 12pt;")
         right_layout.addWidget(skeleton_label)
         
-        # Use the custom SkeletonWidget instead of QLabel
         self.skeleton_display = SkeletonWidget()
         self.skeleton_display.setObjectName("skeletonDisplay")
         right_layout.addWidget(self.skeleton_display)
@@ -604,7 +573,7 @@ class WorkoutWindow(QMainWindow):
         
         layout.addLayout(content_layout)
         
-        # Navigation buttons
+        # Boutons de navigations
         nav_layout = QHBoxLayout()
         nav_layout.setSpacing(10)
         
@@ -615,7 +584,7 @@ class WorkoutWindow(QMainWindow):
         
         layout.addLayout(nav_layout)
         
-        # Stop button
+        # Bouton quitter
         stop_btn = QPushButton("Quitter")
         stop_btn.setObjectName("btnRed")
         stop_btn.clicked.connect(self.stop_workout_clicked)
@@ -626,14 +595,14 @@ class WorkoutWindow(QMainWindow):
     
     
     def add_rest_to_list(self):
-            """Add a rest (pause) from input fields"""
+            """Ajoute une pause à la liste"""
             duration = self.rest_duration_spin.value()
             self.interface.add_rest(duration)
             self.update_exercise_list()
 
     
     def add_exercise_to_list(self):
-        """Add exercise from input fields"""
+        """Ajoute un exercice à la liste"""
         name_bf = self.ex_name_input.currentText().strip()
         name = self._get_logical_name(name_bf)
         reps = self.ex_reps_spin.value()
@@ -643,18 +612,17 @@ class WorkoutWindow(QMainWindow):
             self.interface.add_exercise(name, reps, sets)
             self.update_exercise_list()
         else:
-            # Show error message
             pass
     
     def delete_selected_exercise(self):
-        """Delete selected exercise from list"""
+        """Supprime l'exercice ou la pause sélectionné(e)"""
         current_row = self.exercise_list.currentRow()
         if current_row >= 0:
             self.interface.remove_exercise(current_row)
     
     
     def update_exercise_list(self):
-            """Update the list display (exercices + pauses)"""
+            """Mets à jour la liste des exercices + pauses"""
             self.exercise_list.clear()
             for item in self.interface.exercises:
                 t = item.get("type")
@@ -672,24 +640,24 @@ class WorkoutWindow(QMainWindow):
 
     
     def start_workout_clicked(self):
-        """Start the workout"""
+        """Demarre la séance d'entraînement"""
         self.interface.start_workout()
         self.update_timer.start(500)  # Update every 500ms
         self._stop_local_rest()
     
     def stop_workout_clicked(self):
-        """Stop the workout"""
+        """Arrête la séance d'entraînement"""
         self.update_timer.stop()
         self.interface.stop_workout()
         self._stop_local_rest()
     
     def show_config_view(self):
-        """Show configuration view"""
+        """Montre la configuration view"""
         self.stacked_widget.setCurrentWidget(self.config_view)
         self.update_timer.stop()
     
     def show_execution_view(self):
-        """Show execution view"""
+        """Montre la vue d'exécution"""
         self.stacked_widget.setCurrentWidget(self.execution_view)
         self.update_display()
     
@@ -698,7 +666,7 @@ class WorkoutWindow(QMainWindow):
         """Met à jour la vue d'exécution : nom, reps/séries, temps de repos, compteur.
         Gère aussi le timer local de repos si le moteur ne fournit pas Rest_Time_RemainingI.
         """
-        # 1) Vérifications de base
+       
         if self.interface.Session_StateI != "execution" or len(self.interface.exercises) == 0:
             # Par sécurité, on coupe le timer local si on n’est pas en exécution
             self._stop_local_rest()
@@ -712,7 +680,7 @@ class WorkoutWindow(QMainWindow):
         exercise = self.interface.exercises[current_index]
         t = exercise.get("type")
 
-        # 2) Titre et affichage reps/séries selon le type
+        # Titre et affichage reps/séries selon le type
         if t == "pause":
             duree_secondes = exercise.get("duree_secondes", 0)
             self.current_exercise_label.setText(f"Pause : {duree_secondes} s")
@@ -727,30 +695,23 @@ class WorkoutWindow(QMainWindow):
             self.reps_remaining_label.setText(str(self.interface.Rep_RemainingI or 0))
             self.sets_remaining_label.setText(str(self.interface.Set_RemainingI or 0))
 
-        # 3) Gestion du temps de repos : priorité au moteur
+        # Gestion du temps de repos : priorité au moteur
         if self.interface.Rest_Time_RemainingI is not None:
-            # Valeur poussée par le moteur => on affiche telle quelle
             try:
-                # au cas où c’est une chaîne
                 rest_val = int(self.interface.Rest_Time_RemainingI)
             except:
                 rest_val = 0
             self.rest_time_label.setText(f" {rest_val}s ")
 
-            # IMPORTANT : si le moteur pousse la valeur, on coupe notre timer local
             self._stop_local_rest()
 
-            # Et on reset la clé de cache pour permettre un relancement futur si besoin
             self._last_rest_item_key = None
 
         else:
             # Pas de valeur moteur
             if t == "pause":
-                # On fabrique une clé unique pour cette pause (index + durée)
-                # Cela évite de relancer le timer à chaque update (500 ms)
                 current_key = (current_index, exercise.get("duree_secondes", 0))
 
-                # Si on change de pause ou de durée, on relance
                 if self._last_rest_item_key != current_key:
                     self._last_rest_item_key = current_key
                     self._start_local_rest(exercise.get("duree_secondes", 0))
@@ -761,14 +722,14 @@ class WorkoutWindow(QMainWindow):
                 self._stop_local_rest()
                 self._last_rest_item_key = None
 
-        # 4) Compteur d’élément
+        # Compteur d’élément
         self.exercise_counter_label.setText(
             f"Élément {current_index + 1} / {len(self.interface.exercises)}"
         )
 
     
     def update_squelette_display(self, squelette_data):
-        """Update skeleton/squelette display"""
+        """Met à jour l'affichage du squelette"""
         if squelette_data:
             self.skeleton_display.set_skeleton_data(squelette_data)
         else:
@@ -776,7 +737,7 @@ class WorkoutWindow(QMainWindow):
             self.skeleton_display.update()
     
     def update_vision_state_display(self, vision_state):
-        """Update vision state indicator"""
+        """Met à jour l'indicateur d'état de la vision"""
         if vision_state:
             self.vision_state_indicator.setText("✓ Vision Active")
             self.vision_state_indicator.setStyleSheet(
@@ -789,15 +750,15 @@ class WorkoutWindow(QMainWindow):
             )
     
     def update_feedback_display(self, feedback_data):
-        """Update feedback display from vision"""
+        """Met à jour l'affichage des retours de la vision"""
         self.feedback_display.setText(feedback_data or "En attente de feedback...")
     
     def update_reps(self, value):
-        """Update reps remaining display"""
+        """Met à jour l'affichage des répétitions restantes"""
         self.reps_remaining_label.setText(str(value or 0))
     
     def update_sets(self, value):
-        """Update sets remaining display"""
+        """Met à jour l'affichage des séries restantes"""
         self.sets_remaining_label.setText(str(value or 0))
     
     def update_rest_time(self, value):
@@ -846,7 +807,7 @@ class WorkoutWindow(QMainWindow):
             
     
     def update_current_exercice_display(self, exercice_name):
-        """Update current exercise display from Moteur input"""
+        """Met à jour l'affichage de l'exercice courant à partir de l'entrée du Moteur"""
         self.current_exercise_label.setText(f"Exercice actuel : {self._get_corrected_name(exercice_name)}")
         self.current_exercise_label.setStyleSheet("background-color: #751323;")
         
