@@ -6,6 +6,11 @@ L’analyse des mouvements repose sur la reconnaissance du squelette en temps r�
 
 ---
 
+Vidéo demonstration :
+https://drive.google.com/file/d/1VzAnt_8DeMBVeXOVjfyMXoGzL7bRSXAg/view?usp=drive_link
+
+---
+
 ## Fonctionnalités
 
 - Création et édition de séances de sport personnalisées  
