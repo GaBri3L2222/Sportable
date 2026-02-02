@@ -30,7 +30,7 @@ Les exercices actuellement disponibles sont :
 
 ## Architecture du projet
 
-Le projet repose sur une architecture **multi-agents**, composée de trois agents distincts :
+Le projet repose sur une architecture **multi-agents**, composée de quatre agents distincts :
 
 ### Agent Vision
 - Utilise **MediaPipe** pour la reconnaissance du squelette
@@ -50,12 +50,16 @@ Le projet repose sur une architecture **multi-agents**, composée de trois agent
 - Maintient et met à jour la structure interne de la séance de sport
 - Gère l’état d’avancement des exercices et des pauses
 
+### Agent Whiteboard
+- Compte les répétitions restantes de l'utilisateur
+- Affiche un récapitulatif de la séance une fois terminée
+
 ---
 
 ## Exécution du projet
 
 ### Prérequis
-- Python installé
+- Python installé (avec les requierments.txt de chaque agents)
 - Webcam fonctionnelle
 - Ingescape installé et opérationnel
 
@@ -76,7 +80,7 @@ Avec **PORT** un port choisi (comme 5670), ainsi que **DEVICE** (comme "Wi-Fi")
 
 **Important**  
 Les trois agents doivent impérativement être **lancés avant toute interaction avec l’Interface Graphique**.  
-Dans le cas contraire, des **problèmes de synchronisation** peuvent apparaître entre l’Interface Graphique et le Moteur.
+Dans le cas contraire, des problèmes de synchronisation peuvent apparaître entre l’Interface Graphique et le Moteur.
 
 ---
 
@@ -88,7 +92,7 @@ Dans le cas contraire, des **problèmes de synchronisation** peuvent apparaître
 sportable.igssystem
 ```
 3. Se connecter avec le même port et le même périphérique réseau que les agents
-4. Ouvrir le **Whiteboard**
+4. Ouvrir le Whiteboard
 
 ---
 
