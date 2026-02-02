@@ -305,30 +305,19 @@ if __name__ == "__main__":
     igs.output_set_description("rest_time_remaining", """<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Asap'; font-size:12px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">en secondes</p></body></html>""")
     igs.output_create("session_state", igs.STRING_T, None)
     igs.output_create("workout_summary", igs.STRING_T, None)
-    igs.service_init("stopWorkout", Stopworkout_callback, agent)
-    igs.service_reply_add("stopWorkout", "updateVue");
-    igs.service_reply_arg_add("stopWorkout", "updateVue", "displayJSON", igs.STRING_T);
+    igs.service_init("stopWorkout", Stopworkout_callback, agent);
     igs.service_init("startWorkout", Startworkout_callback, agent)
-    igs.service_arg_add("startWorkout", "displayJSON", igs.STRING_T)
-    igs.service_reply_add("startWorkout", "updateVue");
-    igs.service_reply_arg_add("startWorkout", "updateVue", "displayJSON", igs.STRING_T);
-    
+    igs.service_arg_add("startWorkout", "displayJSON", igs.STRING_T);
     igs.service_init("removeRecuperation", Removerecuperation_callback, agent)
-    igs.service_arg_add("removeRecuperation", "recuperationID", igs.INTEGER_T)
-    igs.service_reply_add("removeRecuperation", "updateVue");
-    igs.service_reply_arg_add("removeRecuperation", "updateVue", "isRemoved", igs.BOOL_T);
-    
+    igs.service_arg_add("removeRecuperation", "recuperationID", igs.INTEGER_T);
     igs.service_init("addRecuperation", Addrecuperation_callback, agent)
-    igs.service_reply_add("addRecuperation", "updateVue");
-    igs.service_reply_arg_add("addRecuperation", "updateVue", "newIDPause", igs.INTEGER_T);
+    igs.service_reply_add("addRecuperation", "on_exercice_added");
+    igs.service_reply_arg_add("addRecuperation", "on_exercice_added", "newIDPause", igs.INTEGER_T);
     igs.service_init("addExercice", Addexercice_callback, agent)
-    igs.service_reply_add("addExercice", "updateVue");
-    igs.service_reply_arg_add("addExercice", "updateVue", "newIDExo", igs.INTEGER_T);
-    
+    igs.service_reply_add("addExercice", "on_exercice_added");
+    igs.service_reply_arg_add("addExercice", "on_exercice_added", "newIDExo", igs.INTEGER_T);
     igs.service_init("removeExercice", Removeexercice_callback, agent)
-    igs.service_arg_add("removeExercice", "exerciceID", igs.INTEGER_T)
-    igs.service_reply_add("removeExercice", "updateVue");
-    igs.service_reply_arg_add("removeExercice", "updateVue", "isRemoved", igs.BOOL_T);
+    igs.service_arg_add("removeExercice", "exerciceID", igs.INTEGER_T);
 
     igs.start_with_device(device, port)
     # catch SIGINT handler after starting agent

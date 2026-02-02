@@ -58,10 +58,8 @@ class StructWorkout():
         if element != None:
             del self.__elements[self.__elements.index(element)]
             print(f"Suppression de l'exercice d'ID {id}.")
-            return True
         else:
             print(f"Erreur de RemoveExercice : l'exercice d'ID {id} n'existe pas.")
-            return False
         
     def AddPause(self):
         id = self.GetNewID()
@@ -77,10 +75,8 @@ class StructWorkout():
         if element != None:
             del self.__elements[self.__elements.index(element)]
             print(f"Suppression de la pause d'ID {id}.")
-            return True
         else:
             print(f"Erreur de RemovePause : la pause d'ID {id} n'existe pas.")
-            return False
         
     def UpdateAll(self, json: dict):
         size = len(json["elements"])
@@ -307,7 +303,6 @@ class Moteur(metaclass=Singleton):
                 
                 print("Arrêt de la séance.")
             
-            return self.__Planning_workout.ToJSON()
         else:
             print("Service Stopworkout appelé par un agent non autorisé :", sender_agent_name)
             
@@ -363,12 +358,9 @@ class Moteur(metaclass=Singleton):
             
             if self.VerifyState(MoteurCOMPOSING):
                 
-                print(f"Suppression de la récupération d'ID {Recuperationid} demandée par {sender_agent_name}.")
                 # On retire la récupération
-                bool = self.__Planning_workout.RemovePause(Recuperationid)
+                self.__Planning_workout.RemovePause(Recuperationid)
                 
-                # On retourne le planning mis à jour
-                return bool
         else:
             print("Service Removerecuperation appelé par un agent non autorisé :", sender_agent_name)
 
@@ -377,16 +369,13 @@ class Moteur(metaclass=Singleton):
             
             if self.VerifyState(MoteurCOMPOSING):
                 
-                print(f"Ajout d'une récupération demandé par {sender_agent_name}.")
                 # On ajoute la récupération
                 newIDPause = self.__Planning_workout.AddPause()
                 
+                # On informe l'interface graphique de l'ajout avec l'ID de la récupération ajoutée
                 arguments = (newIDPause,)
                 igs.service_call(sender_agent_name, "on_exercice_added", arguments, "")
-                print(f"Service on_recuperation_added appelé avec l'ID {newIDPause}")
                 
-                # On retourne le planning mis à jour
-                return newIDPause
         else:
             print("Service Addrecuperation appelé par un agent non autorisé :", sender_agent_name)
 
@@ -398,12 +387,10 @@ class Moteur(metaclass=Singleton):
                 # On ajoute l'exercice 
                 newIDExo = self.__Planning_workout.AddExercice()
                 
+                # On informe l'interface graphique de l'ajout avec l'ID de l'exercice ajouté
                 arguments = (newIDExo,)
                 igs.service_call(sender_agent_name, "on_exercice_added", arguments, "")
-                print(f"Service on_exercice_added appelé avec l'ID {newIDExo}")
                 
-                # On retourne le planning mis à jour
-                return newIDExo
         else:
             print("Service Addexercice appelé par un agent non autorisé :", sender_agent_name)
 
@@ -412,13 +399,8 @@ class Moteur(metaclass=Singleton):
             
             if self.VerifyState(MoteurCOMPOSING):
                 
-                print(f"Suppression de l'exercice d'ID {Exerciceid} demandée par {sender_agent_name}.")
-                
-                # On retire l'exercice 
-                bool = self.__Planning_workout.RemoveExercice(Exerciceid)
-                
-                # On retourne le planning mis à jour
-                return bool
+                # On retire l'exercice
+                self.__Planning_workout.RemoveExercice(Exerciceid)
         else:
             print("Service Removeexercice appelé par un agent non autorisé :", sender_agent_name)
 

@@ -539,18 +539,7 @@
                     ],
                     "services": [
                         {
-                            "name": "stopWorkout",
-                            "replies": [
-                                {
-                                    "arguments": [
-                                        {
-                                            "name": "displayJSON",
-                                            "type": "STRING"
-                                        }
-                                    ],
-                                    "name": "updateVue"
-                                }
-                            ]
+                            "name": "stopWorkout"
                         },
                         {
                             "arguments": [
@@ -559,18 +548,7 @@
                                     "type": "STRING"
                                 }
                             ],
-                            "name": "startWorkout",
-                            "replies": [
-                                {
-                                    "arguments": [
-                                        {
-                                            "name": "displayJSON",
-                                            "type": "STRING"
-                                        }
-                                    ],
-                                    "name": "updateVue"
-                                }
-                            ]
+                            "name": "startWorkout"
                         },
                         {
                             "arguments": [
@@ -579,18 +557,7 @@
                                     "type": "INTEGER"
                                 }
                             ],
-                            "name": "removeRecuperation",
-                            "replies": [
-                                {
-                                    "arguments": [
-                                        {
-                                            "name": "isRemoved",
-                                            "type": "BOOL"
-                                        }
-                                    ],
-                                    "name": "updateVue"
-                                }
-                            ]
+                            "name": "removeRecuperation"
                         },
                         {
                             "name": "addRecuperation",
@@ -602,7 +569,7 @@
                                             "type": "INTEGER"
                                         }
                                     ],
-                                    "name": "updateVue"
+                                    "name": "on_exercice_added"
                                 }
                             ]
                         },
@@ -616,7 +583,7 @@
                                             "type": "INTEGER"
                                         }
                                     ],
-                                    "name": "updateVue"
+                                    "name": "on_exercice_added"
                                 }
                             ]
                         },
@@ -627,18 +594,7 @@
                                     "type": "INTEGER"
                                 }
                             ],
-                            "name": "removeExercice",
-                            "replies": [
-                                {
-                                    "arguments": [
-                                        {
-                                            "name": "isRemoved",
-                                            "type": "BOOL"
-                                        }
-                                    ],
-                                    "name": "updateVue"
-                                }
-                            ]
+                            "name": "removeExercice"
                         }
                     ]
                 },
@@ -811,6 +767,14 @@
                                 "isAttachedToCircle": false,
                                 "mac": "78:2B:46:44:98:05",
                                 "uuid": "f022508e-2331-42a2-8e79-0fff52608d32"
+                            },
+                            {
+                                "commandLine": "C:\\Users\\benja\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\python.exe main.py --verbose --port 5670 --device Wi-Fi",
+                                "hostname": "Schlogel",
+                                "ip": "192.168.1.197",
+                                "isAttachedToCircle": false,
+                                "mac": "78:2B:46:44:98:05",
+                                "uuid": "a75293ee-6343-4420-a7e6-1a2d101ce2e1"
                             }
                         ]
                     },
@@ -822,7 +786,7 @@
                     "width": 349,
                     "x": -501.8779783390312,
                     "y": 423.3061453240696,
-                    "z": 2.5599999999999894
+                    "z": 2.769999999999985
                 },
                 {
                     "agent": {
@@ -857,6 +821,14 @@
                                 "isAttachedToCircle": false,
                                 "mac": "78:2B:46:44:98:05",
                                 "uuid": "39472126-bd92-4c1e-9923-01da76543b3e"
+                            },
+                            {
+                                "commandLine": "C:\\Users\\benja\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\python.exe main.py --verbose --port 5670 --device Wi-Fi",
+                                "hostname": "Schlogel",
+                                "ip": "192.168.1.197",
+                                "isAttachedToCircle": false,
+                                "mac": "78:2B:46:44:98:05",
+                                "uuid": "46e2bc91-6845-44f8-accb-75d0fea7e80f"
                             }
                         ]
                     },
@@ -868,7 +840,7 @@
                     "width": 250,
                     "x": 315.5389677710484,
                     "y": 12.84419192509236,
-                    "z": 2.679999999999987
+                    "z": 2.7799999999999847
                 },
                 {
                     "data": {

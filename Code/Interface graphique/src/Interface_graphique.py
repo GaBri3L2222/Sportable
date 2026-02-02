@@ -699,7 +699,6 @@ class WorkoutWindow(QMainWindow):
         Gère aussi le timer local de repos si le moteur ne fournit pas Rest_Time_RemainingI.
         """
         # 1) Vérifications de base
-        print(self.interface.Session_StateI)
         if self.interface.Session_StateI != "execution" or len(self.interface.exercises) == 0:
             # Par sécurité, on coupe le timer local si on n’est pas en exécution
             self._stop_local_rest()
@@ -720,9 +719,7 @@ class WorkoutWindow(QMainWindow):
             self.current_exercise_label.setStyleSheet("background-color: #2d8211;")
             self.reps_remaining_label.setText("—")
             self.sets_remaining_label.setText("—")
-            print(f"ok pause {t}")
         else:
-            print(f"not ok {t}")
             nom = exercise.get("nom", "Exercice")
             nameAfter = self._get_corrected_name(nom)
             self.current_exercise_label.setText(f"Exercice actuel : {nameAfter}")
