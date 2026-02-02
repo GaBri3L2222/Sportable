@@ -397,7 +397,7 @@ class WorkoutWindow(QMainWindow):
             layout.setSpacing(15)
 
             # Title
-            title = QLabel("Configuration - Ajouter des Exercices et des Pauses")
+            title = QLabel("Création de séance de sport")
             title.setObjectName("title")
             layout.addWidget(title)
 
@@ -411,7 +411,7 @@ class WorkoutWindow(QMainWindow):
             ex_form.setSpacing(10)
 
             self.ex_name_input = QComboBox()
-            listeExos=["Pompes", "Squats", "Jumping Jacks", "Levée de jambes", "Montée de genou"]
+            listeExos = ["Pompes", "Squats", "Jumping Jacks", "Levée de jambes", "Montée de genou"]
             self.ex_name_input.addItems(listeExos)
             ex_form.addRow("Exercice :", self.ex_name_input)
 
@@ -492,7 +492,7 @@ class WorkoutWindow(QMainWindow):
         layout.setSpacing(15)
         
         # Title
-        title = QLabel("Exercice en cours")
+        title = QLabel("Execution de la séance")
         title.setObjectName("title")
         layout.addWidget(title)
         
@@ -571,8 +571,9 @@ class WorkoutWindow(QMainWindow):
         
         rest_layout = QHBoxLayout()
         rest_layout.addStretch()
-        rest_layout.addWidget(QLabel("Temps de repos:"))
-        self.rest_time_label = QLabel("0s")
+        self.temps_pause_label = QLabel(" Temps de repos : ")
+        rest_layout.addWidget(self.temps_pause_label)
+        self.rest_time_label = QLabel(" 0s ")
         self.rest_time_label.setObjectName("displayValue")
         rest_layout.addWidget(self.rest_time_label)
         rest_layout.addStretch()
@@ -634,18 +635,7 @@ class WorkoutWindow(QMainWindow):
     def add_exercise_to_list(self):
         """Add exercise from input fields"""
         name_bf = self.ex_name_input.currentText().strip()
-        name=""
-        match name_bf:
-            case "Pompes":
-                name = "pompes"
-            case "Squats":
-                name = "squats"
-            case "Jumping Jacks":
-                name = "jumping_jacks"
-            case "Lever Jambes":
-                name = "lever_jambes"
-            case "Montée Genou":
-                name = "montee_genou"
+        name = self._get_logical_name(name_bf)
         reps = self.ex_reps_spin.value()
         sets = self.ex_sets_spin.value()
 
@@ -672,7 +662,7 @@ class WorkoutWindow(QMainWindow):
                     nom = item.get("nom", "Exercice")
                     reps = item.get("repetitions", 0)
                     sets = item.get("series", 0)
-                    text = f" {nom} — {reps} reps x {sets} séries"
+                    text = f"{self._get_corrected_name(nom)} — {reps} reps x {sets} séries"
                 elif t == "pause":
                     duree_secondes = item.get("duree_secondes", 0)
                     text = f"Repos — {duree_secondes} s"
@@ -709,6 +699,7 @@ class WorkoutWindow(QMainWindow):
         Gère aussi le timer local de repos si le moteur ne fournit pas Rest_Time_RemainingI.
         """
         # 1) Vérifications de base
+        print(self.interface.Session_StateI)
         if self.interface.Session_StateI != "execution" or len(self.interface.exercises) == 0:
             # Par sécurité, on coupe le timer local si on n’est pas en exécution
             self._stop_local_rest()
@@ -726,11 +717,16 @@ class WorkoutWindow(QMainWindow):
         if t == "pause":
             duree_secondes = exercise.get("duree_secondes", 0)
             self.current_exercise_label.setText(f"Pause : {duree_secondes} s")
+            self.current_exercise_label.setStyleSheet("background-color: #2d8211;")
             self.reps_remaining_label.setText("—")
             self.sets_remaining_label.setText("—")
+            print(f"ok pause {t}")
         else:
+            print(f"not ok {t}")
             nom = exercise.get("nom", "Exercice")
-            self.current_exercise_label.setText(f"Exercice actuel: {nom}")
+            nameAfter = self._get_corrected_name(nom)
+            self.current_exercise_label.setText(f"Exercice actuel : {nameAfter}")
+            self.current_exercise_label.setStyleSheet("background-color: #751323;")
             self.reps_remaining_label.setText(str(self.interface.Rep_RemainingI or 0))
             self.sets_remaining_label.setText(str(self.interface.Set_RemainingI or 0))
 
@@ -742,7 +738,7 @@ class WorkoutWindow(QMainWindow):
                 rest_val = int(self.interface.Rest_Time_RemainingI)
             except:
                 rest_val = 0
-            self.rest_time_label.setText(f"{rest_val}s")
+            self.rest_time_label.setText(f" {rest_val}s ")
 
             # IMPORTANT : si le moteur pousse la valeur, on coupe notre timer local
             self._stop_local_rest()
@@ -826,7 +822,9 @@ class WorkoutWindow(QMainWindow):
     def _start_rest_countdown(self, seconds):
         self._stop_rest_countdown()
         self._rest_seconds_left = int(seconds)
-        self.rest_time_label.setText(f"{self._rest_seconds_left}s")
+        self.rest_time_label.setText(f" {self._rest_seconds_left}s ")
+        self.temps_pause_label.setStyleSheet("background-color: red; color: white; font-weight: bold; border-radius: 5px;")
+        self.rest_time_label.setStyleSheet("background-color: red; color: white; font-weight: bold; border-radius: 5px;")
         self._rest_timer = QTimer(self)
         self._rest_timer.timeout.connect(self._tick_rest_countdown)
         self._rest_timer.start(1000)
@@ -835,13 +833,15 @@ class WorkoutWindow(QMainWindow):
         if hasattr(self, '_rest_timer') and self._rest_timer.isActive():
             self._rest_timer.stop()
         self._rest_seconds_left = None
+        self.temps_pause_label.setStyleSheet("background-color: white; color: black; font-weight: normal;")
+        self.rest_time_label.setStyleSheet("background-color: white; color: black; font-weight: normal;")
 
     def _tick_rest_countdown(self):
         if self._rest_seconds_left is None:
             self._stop_rest_countdown()
             return
         self._rest_seconds_left -= 1
-        self.rest_time_label.setText(f"{self._rest_seconds_left}s")
+        self.rest_time_label.setText(f" {self._rest_seconds_left}s ")
         if self._rest_seconds_left <= 0:
             self._stop_rest_countdown()
             # Envoie l'impulsion fin_timer
@@ -850,7 +850,8 @@ class WorkoutWindow(QMainWindow):
     
     def update_current_exercice_display(self, exercice_name):
         """Update current exercise display from Moteur input"""
-        self.current_exercise_label.setText(f"Exercice actuel: {exercice_name}")
+        self.current_exercise_label.setText(f"Exercice actuel : {self._get_corrected_name(exercice_name)}")
+        self.current_exercise_label.setStyleSheet("background-color: #751323;")
         
     def _start_local_rest(self, seconds: int):
         self._stop_local_rest()
@@ -875,4 +876,38 @@ class WorkoutWindow(QMainWindow):
 
     def _render_local_rest(self):
         val = self.local_rest_seconds if self.local_rest_seconds is not None else 0
-        self.rest_time_label.setText(f"{val}s")
+        self.rest_time_label.setText(f" {val}s ")
+        
+    def _get_corrected_name(self, nom):
+        nameAfter = ""
+        match nom:
+            case "pompes":
+                nameAfter = "Pompes"
+            case "squats":
+                nameAfter = "Squats"
+            case "jumping_jacks":
+                nameAfter = "Jumping Jacks"
+            case "lever_jambes":
+                nameAfter = "Levée de jambes"
+            case "montee_genou":
+                nameAfter = "Montée de genou"
+            case _:
+                nameAfter = nom
+        return nameAfter
+    
+    def _get_logical_name(self, nom):
+        nameBefore = ""
+        match nom:
+            case "Pompes":
+                nameBefore = "pompes"
+            case "Squats":
+                nameBefore = "squats"
+            case "Jumping Jacks":
+                nameBefore = "jumping_jacks"
+            case "Levée de jambes":
+                nameBefore = "lever_jambes"
+            case "Montée de genou":
+                nameBefore = "montee_genou"
+            case _:
+                nameBefore = nom
+        return nameBefore
