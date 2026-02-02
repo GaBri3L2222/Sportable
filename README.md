@@ -63,7 +63,49 @@ Le projet repose sur une architecture **multi-agents**, composée de trois agent
 
 ### Lancement des agents
 
-Les **trois agents** doivent être lancés **séparément**, chacun dans un terminal, avec la commande suivante :
+Le projet nécessite le lancement de **trois agents distincts** :
+- Vision  
+- Moteur  
+- Interface Graphique
 
+Les trois agents doivent éxécutés avec la commande suivante :
 ```bash
-python main.py --verbose --port 5670 --device "Wi-Fi"
+python main.py --verbose --port PORT --device DEVICE
+```
+Avec **PORT** un port choisi (comme 5670), ainsi que **DEVICE** (comme "Wi-Fi")
+
+**Important**  
+Les trois agents doivent impérativement être **lancés avant toute interaction avec l’Interface Graphique**.  
+Dans le cas contraire, des **problèmes de synchronisation** peuvent apparaître entre l’Interface Graphique et le Moteur.
+
+---
+
+### Configuration Ingescape
+
+1. Ouvrir **Ingescape Circle**
+2. Charger le fichier :
+```bash
+sportable.igssystem
+```
+3. Se connecter avec le même port et le même périphérique réseau que les agents
+4. Ouvrir le **Whiteboard**
+
+---
+
+## Comportement au lancement
+
+- L’agent **Vision** ouvre une fenêtre affichant :
+- Le retour de la webcam
+- Le squelette MediaPipe détecté sur la personne
+- L’agent **Interface Graphique** ouvre la fenêtre principale de l’application Sportable
+
+---
+
+## Remarques
+
+- Tous les agents doivent utiliser les mêmes paramètres réseau
+- L’ordre de lancement des agents n'est pas essentiel
+- Le Whiteboard permet d’observer et de déboguer les échanges entre agents
+
+---
+
