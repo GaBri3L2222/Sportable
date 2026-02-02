@@ -7,7 +7,7 @@ L’analyse des mouvements repose sur la reconnaissance du squelette en temps r�
 ---
 
 Vidéo demonstration :
-https://drive.google.com/file/d/1VzAnt_8DeMBVeXOVjfyMXoGzL7bRSXAg/view?usp=drive_link
+https://drive.google.com/file/d/1Mz7P4-csRHS5kvHjRxiBvGW8DWWBH4U8/view?usp=drive_link
 
 ---
 
